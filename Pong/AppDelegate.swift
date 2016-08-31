@@ -20,7 +20,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         /* Pick a size for the scene */
         if let scene = GameScene(fileNamed:"GameScene") {
             /* Set the scale mode to scale to fit the window */
-            scene.scaleMode = .AspectFill
+            scene.scaleMode = .AspectFit
             
             self.skView!.presentScene(scene)
             
@@ -29,6 +29,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             self.skView!.showsFPS = true
             self.skView!.showsNodeCount = true
+            scene.physicsWorld.gravity = CGVector()
+//            self.skView!.showsPhysics = true
         }
     }
     

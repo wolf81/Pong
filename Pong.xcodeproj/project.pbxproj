@@ -12,6 +12,15 @@
 		795F77DA1D72B84D00CCF863 /* GameScene.sks in Resources */ = {isa = PBXBuildFile; fileRef = 795F77D91D72B84D00CCF863 /* GameScene.sks */; };
 		795F77DC1D72B84D00CCF863 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 795F77DB1D72B84D00CCF863 /* Assets.xcassets */; };
 		795F77DF1D72B84D00CCF863 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 795F77DD1D72B84D00CCF863 /* MainMenu.xib */; };
+		795F77E71D72B86200CCF863 /* Entity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 795F77E61D72B86200CCF863 /* Entity.swift */; };
+		795F77E91D72B8C800CCF863 /* Paddle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 795F77E81D72B8C800CCF863 /* Paddle.swift */; };
+		795F77EB1D72B8D900CCF863 /* Ball.swift in Sources */ = {isa = PBXBuildFile; fileRef = 795F77EA1D72B8D900CCF863 /* Ball.swift */; };
+		795F77ED1D72B91E00CCF863 /* VisualComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 795F77EC1D72B91E00CCF863 /* VisualComponent.swift */; };
+		795F77EF1D72BA1600CCF863 /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = 795F77EE1D72BA1600CCF863 /* Game.swift */; };
+		795F77F11D72BF8700CCF863 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 795F77F01D72BF8700CCF863 /* Constants.swift */; };
+		795F77F31D72C2FA00CCF863 /* ShapeNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 795F77F21D72C2FA00CCF863 /* ShapeNode.swift */; };
+		795F77F51D72D24C00CCF863 /* Wall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 795F77F41D72D24C00CCF863 /* Wall.swift */; };
+		798122701D7546E700A84F49 /* BaseScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7981226F1D7546E700A84F49 /* BaseScene.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,6 +31,15 @@
 		795F77DB1D72B84D00CCF863 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		795F77DE1D72B84D00CCF863 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		795F77E01D72B84D00CCF863 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		795F77E61D72B86200CCF863 /* Entity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Entity.swift; sourceTree = "<group>"; };
+		795F77E81D72B8C800CCF863 /* Paddle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Paddle.swift; sourceTree = "<group>"; };
+		795F77EA1D72B8D900CCF863 /* Ball.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Ball.swift; sourceTree = "<group>"; };
+		795F77EC1D72B91E00CCF863 /* VisualComponent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VisualComponent.swift; sourceTree = "<group>"; };
+		795F77EE1D72BA1600CCF863 /* Game.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Game.swift; sourceTree = "<group>"; };
+		795F77F01D72BF8700CCF863 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		795F77F21D72C2FA00CCF863 /* ShapeNode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShapeNode.swift; sourceTree = "<group>"; };
+		795F77F41D72D24C00CCF863 /* Wall.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Wall.swift; sourceTree = "<group>"; };
+		7981226F1D7546E700A84F49 /* BaseScene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BaseScene.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,6 +78,15 @@
 				795F77DB1D72B84D00CCF863 /* Assets.xcassets */,
 				795F77DD1D72B84D00CCF863 /* MainMenu.xib */,
 				795F77E01D72B84D00CCF863 /* Info.plist */,
+				795F77E61D72B86200CCF863 /* Entity.swift */,
+				795F77E81D72B8C800CCF863 /* Paddle.swift */,
+				795F77EA1D72B8D900CCF863 /* Ball.swift */,
+				795F77EC1D72B91E00CCF863 /* VisualComponent.swift */,
+				795F77EE1D72BA1600CCF863 /* Game.swift */,
+				795F77F01D72BF8700CCF863 /* Constants.swift */,
+				795F77F21D72C2FA00CCF863 /* ShapeNode.swift */,
+				795F77F41D72D24C00CCF863 /* Wall.swift */,
+				7981226F1D7546E700A84F49 /* BaseScene.swift */,
 			);
 			path = Pong;
 			sourceTree = "<group>";
@@ -136,7 +163,16 @@
 			buildActionMask = 2147483647;
 			files = (
 				795F77D81D72B84D00CCF863 /* GameScene.swift in Sources */,
+				795F77E91D72B8C800CCF863 /* Paddle.swift in Sources */,
+				795F77F11D72BF8700CCF863 /* Constants.swift in Sources */,
+				795F77EF1D72BA1600CCF863 /* Game.swift in Sources */,
+				795F77EB1D72B8D900CCF863 /* Ball.swift in Sources */,
+				795F77F31D72C2FA00CCF863 /* ShapeNode.swift in Sources */,
+				795F77ED1D72B91E00CCF863 /* VisualComponent.swift in Sources */,
+				795F77F51D72D24C00CCF863 /* Wall.swift in Sources */,
+				798122701D7546E700A84F49 /* BaseScene.swift in Sources */,
 				795F77D61D72B84D00CCF863 /* AppDelegate.swift in Sources */,
+				795F77E71D72B86200CCF863 /* Entity.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -279,6 +315,7 @@
 				795F77E51D72B84D00CCF863 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
