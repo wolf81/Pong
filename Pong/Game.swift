@@ -12,9 +12,7 @@ import GameplayKit
 class Game : NSObject {
     static let sharedInstance = Game()
     
-    // TODO: Generate an angle, between 60 to 300 (-60).
-    let randomX = GKRandomDistribution(lowestValue: 0, highestValue: 2)
-    let randomY = GKRandomDistribution(lowestValue: -250, highestValue: 250)
+    let randomAngle = GKRandomDistribution(lowestValue: 45, highestValue: 135)
     
     private var nextPlayer: Player = .Red
     
@@ -80,12 +78,10 @@ class Game : NSObject {
             return
         }
         
-        gameScene.didSimulatePhysics()
-        
         if let ball = self.ball, let vc_ball = ball.componentForClass(VisualComponent) {
             let origin = vc_ball.shape.position
-            let dx = deltaTime * Double(ball.velocity.dx) * 400
-            let dy = deltaTime * Double(ball.velocity.dy) * 400
+            let dx = deltaTime * Double(ball.velocity.dx)
+            let dy = deltaTime * Double(ball.velocity.dy)
             vc_ball.shape.position = CGPoint(x: origin.x + CGFloat(dx), y: origin.y + CGFloat(dy))
 
             let ballFrame = vc_ball.shape.frame
@@ -107,8 +103,15 @@ class Game : NSObject {
             case .Blue: nextPlayer = .Red
             }
 
-            let dx = (nextPlayer == .Red) ? -randomX.nextUniform() : randomX.nextUniform()
-            let dy = randomY.nextUniform()
+            let angle = GLKMathDegreesToRadians(Float(randomAngle.nextInt()))
+            let speed: Float = 550
+            let dy = cos(angle) * speed
+            var dx = sin(angle) * speed
+            
+            if nextPlayer == .Red {
+                dx = -dx
+            }
+            
             let velocity = CGVector(dx: CGFloat(dx), dy: CGFloat(dy))
             let ball = Ball(position: CGPoint(x: gameScene.frame.width / 2, y: y), velocity: velocity)
             if let vc = ball.componentForClass(VisualComponent) {
@@ -135,6 +138,8 @@ class Game : NSObject {
                 vc_paddle.shape.physicsBody?.velocity = CGVector.zero
             }
         }
+        
+        gameScene.didSimulatePhysics()
     }
 
     private func handleContactBetweenBall(ball: Ball, andPaddle paddle: Paddle) {
