@@ -12,6 +12,7 @@ class Ball : Entity {
     init(position: CGPoint, velocity: CGVector, canHitPaddle: Bool = true) {
         super.init()
         
+        self.speed = Constants.ballSpeed
         self.velocity = velocity
         
         let r: CGFloat = 25
@@ -22,7 +23,7 @@ class Ball : Entity {
         shape.position = position
         
         if canHitPaddle == false {
-            shape.alpha = 0.0
+            shape.alpha = 0.15
         }
         
         shape.fillColor = SKColor.whiteColor()

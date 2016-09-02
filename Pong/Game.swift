@@ -56,7 +56,7 @@ class Game : NSObject {
     func movePaddle(direction: Direction, forPlayer player: Player) {
         let paddle = (player == .Red) ? player1 : player2
         
-        let dy: CGFloat = 350
+        let dy: CGFloat = CGFloat(paddle.speed)
 
         var velocity: CGVector = CGVector.zero
         
@@ -184,14 +184,33 @@ class Game : NSObject {
             return
         }
 
-        let angle = atan2(ball.velocity.dx, ball.velocity.dy) + CGFloat(M_PI)
-        var speed = Constants.ballSpeed
+        let speed = ball.speed
         
-        print("pveloc: \(paddle.velocity)")
+        let offset = ball.position.y + (Constants.paddleHeight / 2) - paddle.position.y
+        let relativeOffset = fmax(fmin(offset / Constants.paddleHeight, 1), 0)
+        print("offset: \(relativeOffset)")
         
-        if paddle.velocity.dy > 0 {
-            speed += 300
+        let angleOffset = GLKMathDegreesToRadians(20)
+        let reflectAngle = GLKMathDegreesToRadians(140)
+        
+        var angle: CGFloat
+        
+        if paddle == player1 {
+            angle = (1 - relativeOffset) * CGFloat(reflectAngle) + CGFloat(angleOffset)
+        } else {
+            angle = relativeOffset * CGFloat(reflectAngle) + CGFloat(angleOffset) + CGFloat(M_PI)
         }
+
+//        if ((paddle.velocity.dy > 0 && ball.velocity.dy > 0) ||
+//            (paddle.velocity.dy < 0 && ball.velocity.dy < 0)) {
+//            print("increase ball speed")
+//            speed += 70
+//        } else if ((paddle.velocity.dy > 0 && ball.velocity.dy < 0) ||
+//            (paddle.velocity.dy < 0 && ball.velocity.dy > 0)) {
+//            print("decrease ball speed")
+//            speed -= 70
+//        }
+        
         updateBall(ball, angle: Float(angle), speed: speed)
         
         if let invisBall = self.invisBall where destroyBall(invisBall) == true {
@@ -215,6 +234,7 @@ class Game : NSObject {
         let dx = sin(angle) * speed
         let velocity = CGVector(dx: CGFloat(dx), dy: CGFloat(dy))
         
+        ball.speed = speed
         ball.velocity = velocity
     }
     

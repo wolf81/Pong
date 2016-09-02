@@ -17,8 +17,8 @@ struct EntityCategory {
 
 struct Constants {
     static let paddleHeight: CGFloat = 100
-    static let paddleSpeed: CGFloat = 350
-    static let ballSpeed: Float = 550
+    static let paddleSpeed: Float = 380
+    static let ballSpeed: Float = 650
 }
 
 enum Direction: Int {

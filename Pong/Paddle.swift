@@ -12,6 +12,8 @@ class Paddle : Entity {
     init(position: CGPoint, color: SKColor) {
         super.init()
         
+        self.speed = Constants.paddleSpeed
+        
         let rect = CGRect(x: 0, y: 0, width: 10, height: Constants.paddleHeight)
         let path = CGPathCreateWithRect(rect, nil)
         let shape = ShapeNode(path: path, centered: true)

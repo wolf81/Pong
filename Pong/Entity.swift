@@ -10,6 +10,7 @@ import GameplayKit
 
 class Entity : GKEntity {
     var velocity: CGVector = CGVector.zero
+    var speed: Float = 0
 
     var position: CGPoint {
         get {
