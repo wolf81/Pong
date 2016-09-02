@@ -20,8 +20,7 @@ class Paddle : Entity {
         shape.fillColor = color
         shape.strokeColor = color
 
-        let convertView = SKView()
-        let sprite = SpriteNode(texture: convertView.textureFromNode(shape))
+        let sprite = SpriteNode(texture: shape.texture)
         sprite.entity = self
         sprite.position = position
         

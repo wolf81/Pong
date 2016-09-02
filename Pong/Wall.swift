@@ -12,15 +12,13 @@ class Wall : Entity {
     init(position: CGPoint, size: CGSize, color: SKColor) {
         super.init()
         
-        let convertView = SKView()
-        
         let rect = CGRect(x: 0, y: 0, width: size.width, height: size.height)
         let path = CGPathCreateWithRect(rect, nil)
         let shape = SKShapeNode(path: path, centered: false)
         shape.fillColor = color
         shape.strokeColor = color
 
-        let sprite = SpriteNode(texture: convertView.textureFromNode(shape))
+        let sprite = SpriteNode(texture: shape.texture)
         sprite.entity = self
         sprite.position = position
         let vc = VisualComponent(sprite: sprite)

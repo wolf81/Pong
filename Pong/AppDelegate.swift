@@ -19,18 +19,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(aNotification: NSNotification) {
         /* Pick a size for the scene */
         let scene = GameScene(size: CGSize(width: 1280, height: 960))
-            /* Set the scale mode to scale to fit the window */
-            scene.scaleMode = .AspectFit
-            
-            self.skView!.presentScene(scene)
-            
-            /* Sprite Kit applies additional optimizations to improve rendering performance */
-            self.skView!.ignoresSiblingOrder = true
-            
-            self.skView!.showsFPS = true
-            self.skView!.showsNodeCount = true
-            scene.physicsWorld.gravity = CGVector()
-            self.skView!.showsPhysics = false
+        scene.scaleMode = .AspectFit
+        scene.physicsWorld.gravity = CGVector()
+        
+        if let skView = self.skView {
+            skView.presentScene(scene)
+            skView.ignoresSiblingOrder = true
+            skView.showsFPS = true
+            skView.showsDrawCount = true
+            skView.showsNodeCount = true
+            skView.showsPhysics = false
+            skView.asynchronous = false
+        }
     }
     
     func applicationShouldTerminateAfterLastWindowClosed(sender: NSApplication) -> Bool {

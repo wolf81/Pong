@@ -25,8 +25,7 @@ class Ball : Entity {
             shape.alpha = 0.15
         }
 
-        let convertView = SKView()
-        let sprite = SpriteNode(texture: convertView.textureFromNode(shape))
+        let sprite = SpriteNode(texture: shape.texture)
         sprite.entity = self
         sprite.position = position
         

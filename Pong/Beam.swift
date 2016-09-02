@@ -18,8 +18,7 @@ class Beam : Entity {
         shape.fillColor = color
         shape.strokeColor = color
 
-        let convertView = SKView()
-        let sprite = SpriteNode(texture: convertView.textureFromNode(shape))
+        let sprite = SpriteNode(texture: shape.texture)
         sprite.entity = self        
         sprite.position = position
         sprite.anchorPoint = CGPoint(x: 0, y: 0.5)
