@@ -40,4 +40,8 @@ class GameScene : BaseScene {
     override func handleDownRelease(forPlayer player: Player) {
         Game.sharedInstance.movePaddle(.None, forPlayer: player)        
     }
+    
+    override func handleActionPress(forPlayer player: Player) {
+        Game.sharedInstance.fireBeam(forPlayer: player)
+    }
 }

@@ -16,8 +16,8 @@ class Game : NSObject {
     
     private var nextPlayer: Player = .Red
     
-    private var player1: Paddle!
-    private var player2: Paddle!
+    private var redPaddle: Paddle!
+    private var bluePaddle: Paddle!
     private var topWall: Wall!
     private var bottomWall: Wall!
     
@@ -36,8 +36,8 @@ class Game : NSObject {
         let y: CGFloat = gameScene.frame.height / 2
         let offset: CGFloat = 15.0
         
-        player1 = Paddle(position: CGPoint(x: offset, y: y), color: SKColor.redColor())
-        player2 = Paddle(position: CGPoint(x: gameScene.frame.width - offset, y: y), color: SKColor.blueColor())
+        redPaddle = Paddle(position: CGPoint(x: offset, y: y), color: SKColor.redColor())
+        bluePaddle = Paddle(position: CGPoint(x: gameScene.frame.width - offset, y: y), color: SKColor.blueColor())
         
         let size = CGSize(width: gameScene.frame.width, height: 2.0)
         let topY = gameScene.frame.height - size.height - 60
@@ -46,7 +46,7 @@ class Game : NSObject {
         
         gameScene.physicsWorld.contactDelegate = self
         
-        for entity in [player1, player2, topWall, bottomWall] {
+        for entity in [redPaddle, bluePaddle, topWall, bottomWall] {
             if let vc = entity.componentForClass(VisualComponent) {
                 gameScene.addChild(vc.shape)
             }
@@ -54,7 +54,7 @@ class Game : NSObject {
     }
 
     func movePaddle(direction: Direction, forPlayer player: Player) {
-        let paddle = (player == .Red) ? player1 : player2
+        let paddle = (player == .Red) ? redPaddle : bluePaddle
         
         let dy: CGFloat = CGFloat(paddle.speed)
 
@@ -67,6 +67,28 @@ class Game : NSObject {
         }
         
         paddle.velocity = velocity
+    }
+    
+    func fireBeam(forPlayer player: Player) {
+        guard let gameScene = self.gameScene else {
+            return
+        }
+        
+        let paddle = (player == .Red) ? redPaddle : bluePaddle
+        
+        let origin = CGPoint(x: paddle.position.x + 20, y: paddle.position.y)
+        
+        let beam = Beam(position: origin, color: SKColor.purpleColor())
+        
+        if let vc = beam.componentForClass(VisualComponent) {
+            gameScene.addChild(vc.shape)
+            
+            let width = CGRectGetWidth(gameScene.frame)
+            let resize = SKAction.scaleXTo(width, duration: 0.7)
+            vc.shape.runAction(resize, completion: {
+                vc.shape.removeFromParent()
+            })
+        }
     }
     
     // The main update loop. Called every frame to update game state.
@@ -128,10 +150,10 @@ class Game : NSObject {
             }
             
             self.ball = spawnBall(forScene: gameScene, position: position, angle: angle, speed: Constants.ballSpeed)
-            self.invisBall = spawnBall(forScene: gameScene, position: position, angle: angle, speed: Constants.ballSpeed + 250, canHitPaddle: false)
+            self.invisBall = spawnBall(forScene: gameScene, position: position, angle: angle, speed: Constants.ballSpeed + 100, canHitPaddle: false)
         }
         
-        if let ball = self.invisBall, let cpuPaddle = self.player2 {
+        if let ball = self.invisBall, let cpuPaddle = self.bluePaddle {
             let range = cpuPaddle.position.y - 40 ... cpuPaddle.position.y + 40
             
             if range.contains(ball.position.y) == false {
@@ -157,7 +179,7 @@ class Game : NSObject {
             return
         }
         
-        for paddle in [player1, player2] {
+        for paddle in [redPaddle, bluePaddle] {
             guard let vc_paddle = paddle.componentForClass(VisualComponent) else {
                 continue
             }
@@ -195,7 +217,7 @@ class Game : NSObject {
         
         var angle: CGFloat
         
-        if paddle == player1 {
+        if paddle == redPaddle {
             angle = (1 - relativeOffset) * CGFloat(reflectAngle) + CGFloat(angleOffset)
         } else {
             angle = relativeOffset * CGFloat(reflectAngle) + CGFloat(angleOffset) + CGFloat(M_PI)
@@ -217,7 +239,7 @@ class Game : NSObject {
             self.invisBall = nil
         }
         
-        self.invisBall = spawnBall(forScene: scene, position: ball.position, angle: Float(angle), speed: speed + 250, canHitPaddle: false)
+        self.invisBall = spawnBall(forScene: scene, position: ball.position, angle: Float(angle), speed: speed + 100, canHitPaddle: false)
     }
 
     private func handleContactBetweenBall(ball: Ball, andWall wall: Wall) {

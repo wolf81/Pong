@@ -13,12 +13,14 @@ struct EntityCategory {
     static let Ball:        UInt32 = 0b1
     static let Paddle:      UInt32 = 0b10
     static let Wall:        UInt32 = 0b100
+    static let Beam:        UInt32 = 0b1000
 }
 
 struct Constants {
     static let paddleHeight: CGFloat = 100
     static let paddleSpeed: Float = 380
     static let ballSpeed: Float = 650
+    static let beamHeight: CGFloat = 10
 }
 
 enum Direction: Int {
