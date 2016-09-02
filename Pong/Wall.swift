@@ -10,7 +10,7 @@ import SpriteKit
 
 class Wall : Entity {
     init(position: CGPoint, size: CGSize, color: SKColor) {
-        super.init(position: position)
+        super.init()
         
         let rect = CGRect(x: 0, y: 0, width: size.width, height: size.height)
         let path = CGPathCreateWithRect(rect, nil)

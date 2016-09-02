@@ -10,11 +10,20 @@ import GameplayKit
 
 class Entity : GKEntity {
     var velocity: CGVector = CGVector.zero
-    var position: CGPoint = CGPoint.zero
 
-    init(position: CGPoint) {
+    var position: CGPoint {
+        get {
+            var position = CGPoint.zero
+            
+            if let vc = componentForClass(VisualComponent) {
+                position = vc.shape.position
+            }
+            
+            return position
+        }
+    }
+    
+    override init() {
         super.init()
-
-        self.position = position        
     }
 }

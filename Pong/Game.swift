@@ -24,6 +24,7 @@ class Game : NSObject {
     private(set) var gameScene: GameScene?
     
     private var ball: Ball?
+    private var invisBall: Ball?
     
     override private init() {
         // Hide initializer, for this is a singleton.
@@ -55,13 +56,9 @@ class Game : NSObject {
     func movePaddle(direction: Direction, forPlayer player: Player) {
         let paddle = (player == .Red) ? player1 : player2
         
-        guard let vc = paddle.componentForClass(VisualComponent),
-            let physicsBody = vc.shape.physicsBody else {
-            return
-        }
+        let dy: CGFloat = 350
 
         var velocity: CGVector = CGVector.zero
-        let dy: CGFloat = 350
         
         switch direction {
         case .Up: velocity = CGVector(dx: 0, dy: dy)
@@ -69,13 +66,29 @@ class Game : NSObject {
         case .None: break
         }
         
-        physicsBody.velocity = velocity
+        paddle.velocity = velocity
     }
     
     // The main update loop. Called every frame to update game state.
     func update(deltaTime: CFTimeInterval) {
         guard let gameScene = self.gameScene else {
             return
+        }
+        
+        if let ball = self.invisBall, let vc_ball = ball.componentForClass(VisualComponent) {
+            let origin = vc_ball.shape.position
+            let dx = deltaTime * Double(ball.velocity.dx)
+            let dy = deltaTime * Double(ball.velocity.dy)
+
+            var x = Double(origin.x)
+            
+            if CGFloat(x) > CGRectGetMaxX(gameScene.frame) || x < 0 {
+                ball.velocity = CGVector.zero
+            } else {
+                x = x + dx
+            }
+            
+            vc_ball.shape.position = CGPoint(x: CGFloat(x), y: origin.y + CGFloat(dy))
         }
         
         if let ball = self.ball, let vc_ball = ball.componentForClass(VisualComponent) {
@@ -85,15 +98,19 @@ class Game : NSObject {
             vc_ball.shape.position = CGPoint(x: origin.x + CGFloat(dx), y: origin.y + CGFloat(dy))
 
             let ballFrame = vc_ball.shape.frame
-            let wallFrame = bottomWall.componentForClass(VisualComponent)!.shape.frame
             
-            if CGRectGetMinX(ballFrame) > CGRectGetMaxX(gameScene.frame) ||
-                CGRectGetMaxX(ballFrame) < CGRectGetMinX(gameScene.frame) {
-                self.ball = nil
-                vc_ball.shape.removeFromParent()
-            } else if CGRectGetMaxY(ballFrame) < CGRectGetMaxY(wallFrame) {
-                self.ball = nil
-                vc_ball.shape.removeFromParent()
+            if (CGRectGetMinX(ballFrame) > CGRectGetMaxX(gameScene.frame) ||
+                CGRectGetMaxX(ballFrame) < CGRectGetMinX(gameScene.frame)) {
+
+                if destroyBall(ball) {
+                    self.ball = nil
+                }
+                
+                if let invisBall = self.invisBall {
+                    if destroyBall(invisBall) {
+                        self.invisBall = nil
+                    }
+                }
             }
         } else {
             let y: CGFloat = gameScene.frame.height / 2            
@@ -103,39 +120,59 @@ class Game : NSObject {
             case .Blue: nextPlayer = .Red
             }
 
-            let angle = GLKMathDegreesToRadians(Float(randomAngle.nextInt()))
-            let speed: Float = 550
-            let dy = cos(angle) * speed
-            var dx = sin(angle) * speed
-            
+            let position = CGPoint(x: gameScene.frame.width / 2, y: y)
+
+            var angle = GLKMathDegreesToRadians(Float(randomAngle.nextInt()))
             if nextPlayer == .Red {
-                dx = -dx
+                angle += Float(M_PI)
             }
             
-            let velocity = CGVector(dx: CGFloat(dx), dy: CGFloat(dy))
-            let ball = Ball(position: CGPoint(x: gameScene.frame.width / 2, y: y), velocity: velocity)
-            if let vc = ball.componentForClass(VisualComponent) {
-                gameScene.addChild(vc.shape)
-            }
+            self.ball = spawnBall(forScene: gameScene, position: position, angle: angle, speed: Constants.ballSpeed)
+            self.invisBall = spawnBall(forScene: gameScene, position: position, angle: angle, speed: Constants.ballSpeed + 250, canHitPaddle: false)
+        }
+        
+        if let ball = self.invisBall, let cpuPaddle = self.player2 {
+            let range = cpuPaddle.position.y - 40 ... cpuPaddle.position.y + 40
             
-            self.ball = ball
+            if range.contains(ball.position.y) == false {
+                if cpuPaddle.position.y > ball.position.y {
+                    if cpuPaddle.velocity.dy >= 0 {
+                        movePaddle(Direction.Down, forPlayer: .Blue)
+                    }
+                } else if cpuPaddle.position.y < ball.position.y {
+                    if cpuPaddle.velocity.dy <= 0 {
+                        movePaddle(Direction.Up, forPlayer: .Blue)
+                    }
+                } else {
+                    movePaddle(Direction.None, forPlayer: .Blue)
+                }
+            } else {            
+                movePaddle(Direction.None, forPlayer: .Blue)
+            }
         }
 
         guard
-            let vc_paddle1 = player1.componentForClass(VisualComponent),
-            let vc_paddle2 = player2.componentForClass(VisualComponent),
             let vc_topWall = topWall.componentForClass(VisualComponent),
             let vc_bottomWall = bottomWall.componentForClass(VisualComponent) else {
             return
         }
         
-        for vc_paddle in [vc_paddle1, vc_paddle2] {
+        for paddle in [player1, player2] {
+            guard let vc_paddle = paddle.componentForClass(VisualComponent) else {
+                continue
+            }
+            
             if CGRectGetMaxY(vc_paddle.shape.frame) >= CGRectGetMinY(vc_topWall.shape.frame) &&
-                vc_paddle.shape.physicsBody?.velocity.dy > 0 {
-                vc_paddle.shape.physicsBody?.velocity = CGVector.zero
+                paddle.velocity.dy > 0 {
+                paddle.velocity = CGVector.zero
             } else if CGRectGetMinY(vc_paddle.shape.frame) <= CGRectGetMaxY(vc_bottomWall.shape.frame) &&
-                vc_paddle.shape.physicsBody?.velocity.dy < 0 {
-                vc_paddle.shape.physicsBody?.velocity = CGVector.zero
+                paddle.velocity.dy < 0 {
+                paddle.velocity = CGVector.zero
+            } else {
+                let dy = deltaTime * Double(paddle.velocity.dy)
+                let origin = vc_paddle.shape.position
+                let dx = 0
+                vc_paddle.shape.position = CGPoint(x: origin.x + CGFloat(dx), y: origin.y + CGFloat(dy))
             }
         }
         
@@ -143,8 +180,25 @@ class Game : NSObject {
     }
 
     private func handleContactBetweenBall(ball: Ball, andPaddle paddle: Paddle) {
-        let velocity = ball.velocity
-        ball.velocity = CGVector(dx: -velocity.dx, dy: velocity.dy)
+        guard let scene = self.gameScene else {
+            return
+        }
+
+        let angle = atan2(ball.velocity.dx, ball.velocity.dy) + CGFloat(M_PI)
+        var speed = Constants.ballSpeed
+        
+        print("pveloc: \(paddle.velocity)")
+        
+        if paddle.velocity.dy > 0 {
+            speed += 300
+        }
+        updateBall(ball, angle: Float(angle), speed: speed)
+        
+        if let invisBall = self.invisBall where destroyBall(invisBall) == true {
+            self.invisBall = nil
+        }
+        
+        self.invisBall = spawnBall(forScene: scene, position: ball.position, angle: Float(angle), speed: speed + 250, canHitPaddle: false)
     }
 
     private func handleContactBetweenBall(ball: Ball, andWall wall: Wall) {
@@ -153,11 +207,42 @@ class Game : NSObject {
     }
 
     private func handleContactBetweenPaddle(paddle: Paddle, andWall wall: Wall) {
-        guard let vc = paddle.componentForClass(VisualComponent) else {
-            return
+        paddle.velocity = CGVector.zero
+    }
+    
+    private func updateBall(ball: Ball, angle: Float, speed: Float) {
+        let dy = cos(angle) * speed
+        let dx = sin(angle) * speed
+        let velocity = CGVector(dx: CGFloat(dx), dy: CGFloat(dy))
+        
+        ball.velocity = velocity
+    }
+    
+    private func spawnBall(forScene scene: SKScene, position: CGPoint, angle: Float, speed: Float, canHitPaddle: Bool = true) -> Ball {
+        var ball: Ball
+        
+        let dy = cos(angle) * speed
+        let dx = sin(angle) * speed
+        let velocity = CGVector(dx: CGFloat(dx), dy: CGFloat(dy))
+        
+        ball = Ball(position: position, velocity: velocity, canHitPaddle: canHitPaddle)
+        
+        if let vc = ball.componentForClass(VisualComponent) {
+            scene.addChild(vc.shape)
         }
         
-        vc.shape.physicsBody?.velocity = CGVector.zero
+        return ball
+    }
+    
+    private func destroyBall(ball: Ball) -> Bool {
+        var success = false
+        
+        if let vc = ball.componentForClass(VisualComponent) {
+            vc.shape.removeFromParent()
+            success = true
+        }
+        
+        return success
     }
 }
 

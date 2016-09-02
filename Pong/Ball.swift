@@ -9,8 +9,8 @@
 import SpriteKit
 
 class Ball : Entity {    
-    init(position: CGPoint, velocity: CGVector) {
-        super.init(position: position)
+    init(position: CGPoint, velocity: CGVector, canHitPaddle: Bool = true) {
+        super.init()
         
         self.velocity = velocity
         
@@ -20,6 +20,11 @@ class Ball : Entity {
         let shape = ShapeNode(path: path, centered: true)
         shape.entity = self
         shape.position = position
+        
+        if canHitPaddle == false {
+            shape.alpha = 0.0
+        }
+        
         shape.fillColor = SKColor.whiteColor()
         shape.strokeColor = SKColor.whiteColor()
         
@@ -28,7 +33,14 @@ class Ball : Entity {
         
         vc.shape.physicsBody = SKPhysicsBody(circleOfRadius: r / 2)
         vc.shape.physicsBody?.categoryBitMask = EntityCategory.Ball
-        vc.shape.physicsBody?.contactTestBitMask = EntityCategory.Paddle | EntityCategory.Wall
+        vc.shape.physicsBody?.collisionBitMask = EntityCategory.Nothing
+        
+        if canHitPaddle {
+            vc.shape.physicsBody?.contactTestBitMask = EntityCategory.Paddle | EntityCategory.Wall
+        } else {
+            vc.shape.physicsBody?.contactTestBitMask = EntityCategory.Wall
+        }
+        
         vc.shape.physicsBody?.usesPreciseCollisionDetection = true
     }
 }

@@ -15,10 +15,16 @@ struct EntityCategory {
     static let Wall:        UInt32 = 0b100
 }
 
-enum Direction {
-    case Up
-    case Down
-    case None
+struct Constants {
+    static let paddleHeight: CGFloat = 100
+    static let paddleSpeed: CGFloat = 350
+    static let ballSpeed: Float = 550
+}
+
+enum Direction: Int {
+    case Down = -1
+    case None = 0
+    case Up = 1
 }
 
 enum Player {

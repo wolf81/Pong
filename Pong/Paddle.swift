@@ -10,9 +10,9 @@ import SpriteKit
 
 class Paddle : Entity {
     init(position: CGPoint, color: SKColor) {
-        super.init(position: position)
+        super.init()
         
-        let rect = CGRect(x: 0, y: 0, width: 10, height: 100)
+        let rect = CGRect(x: 0, y: 0, width: 10, height: Constants.paddleHeight)
         let path = CGPathCreateWithRect(rect, nil)
         let shape = ShapeNode(path: path, centered: true)
         shape.entity = self

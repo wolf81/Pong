@@ -79,14 +79,14 @@ class BaseScene : SKScene {
         
         switch keyCode {
         // Player 1
-        case 53: result = (.Red, .Pause)
-        case 125: result = (.Red, .Down)
-        case 126: result = (.Red, .Up)
-        case 49: result = (.Red, .Action)
+        case 53: result = (.Blue, .Pause)
+        case 125: result = (.Blue, .Down)
+        case 126: result = (.Blue, .Up)
+        case 49: result = (.Blue, .Action)
             
         // Player 2
-        case 1: result = (.Blue, .Down)
-        case 13: result = (.Blue, .Up)
+        case 1: result = (.Red, .Down)
+        case 13: result = (.Red, .Up)
         default: break
         }
         
