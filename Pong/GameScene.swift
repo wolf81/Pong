@@ -11,7 +11,7 @@ import SpriteKit
 class GameScene : BaseScene {
     private var lastUpdateTime: NSTimeInterval = 0
     
-    override func didMoveToView(view: SKView) {
+    override func didMoveToView(view: SKView) {        
         Game.sharedInstance.setup(forScene: self)
     }
         

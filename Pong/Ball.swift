@@ -18,30 +18,31 @@ class Ball : Entity {
         let r: CGFloat = 25
         let rect = CGRect(x: 0, y: 0, width: r, height: r)
         let path = CGPathCreateWithEllipseInRect(rect, nil)
-        let shape = ShapeNode(path: path, centered: true)
-        shape.entity = self
-        shape.position = position
-        
+        let shape = SKShapeNode(path: path, centered: true)
+        shape.fillColor = SKColor.whiteColor()
+        shape.strokeColor = SKColor.whiteColor()
         if canHitPaddle == false {
             shape.alpha = 0.15
         }
+
+        let convertView = SKView()
+        let sprite = SpriteNode(texture: convertView.textureFromNode(shape))
+        sprite.entity = self
+        sprite.position = position
         
-        shape.fillColor = SKColor.whiteColor()
-        shape.strokeColor = SKColor.whiteColor()
-        
-        let vc = VisualComponent(shape: shape)
+        let vc = VisualComponent(sprite: sprite)
         addComponent(vc)
         
-        vc.shape.physicsBody = SKPhysicsBody(circleOfRadius: r / 2)
-        vc.shape.physicsBody?.categoryBitMask = EntityCategory.Ball
-        vc.shape.physicsBody?.collisionBitMask = EntityCategory.Nothing
+        vc.sprite.physicsBody = SKPhysicsBody(circleOfRadius: r / 2, center: CGPoint.zero)
+        vc.sprite.physicsBody?.categoryBitMask = EntityCategory.Ball
+        vc.sprite.physicsBody?.collisionBitMask = EntityCategory.Nothing
         
         if canHitPaddle {
-            vc.shape.physicsBody?.contactTestBitMask = EntityCategory.Paddle | EntityCategory.Wall
+            vc.sprite.physicsBody?.contactTestBitMask = EntityCategory.Paddle | EntityCategory.Wall
         } else {
-            vc.shape.physicsBody?.contactTestBitMask = EntityCategory.Wall
+            vc.sprite.physicsBody?.contactTestBitMask = EntityCategory.Wall
         }
         
-        vc.shape.physicsBody?.usesPreciseCollisionDetection = true
+        vc.sprite.physicsBody?.usesPreciseCollisionDetection = true
     }
 }

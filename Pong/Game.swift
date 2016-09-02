@@ -21,6 +21,9 @@ class Game : NSObject {
     private var topWall: Wall!
     private var bottomWall: Wall!
     
+    private var redBeam: Beam?
+    private var blueBeam: Beam?
+    
     private(set) var gameScene: GameScene?
     
     private var ball: Ball?
@@ -36,19 +39,23 @@ class Game : NSObject {
         let y: CGFloat = gameScene.frame.height / 2
         let offset: CGFloat = 15.0
         
+        gameScene.backgroundColor = SKColor.lightGrayColor()
+        
         redPaddle = Paddle(position: CGPoint(x: offset, y: y), color: SKColor.redColor())
         bluePaddle = Paddle(position: CGPoint(x: gameScene.frame.width - offset, y: y), color: SKColor.blueColor())
         
-        let size = CGSize(width: gameScene.frame.width, height: 2.0)
+        let size = CGSize(width: gameScene.frame.width, height: 4.0)
         let topY = gameScene.frame.height - size.height - 60
-        topWall = Wall(position: CGPoint(x: 0, y: topY), size: size, color: SKColor.purpleColor())
-        bottomWall = Wall(position: CGPoint(x: 0, y: 0), size: size, color: SKColor.purpleColor())
+        
+        let x = CGRectGetMidX(gameScene.frame)
+        topWall = Wall(position: CGPoint(x: x, y: topY), size: size, color: SKColor.purpleColor())
+        bottomWall = Wall(position: CGPoint(x: x, y: size.height), size: size, color: SKColor.purpleColor())
         
         gameScene.physicsWorld.contactDelegate = self
         
         for entity in [redPaddle, bluePaddle, topWall, bottomWall] {
             if let vc = entity.componentForClass(VisualComponent) {
-                gameScene.addChild(vc.shape)
+                gameScene.addChild(vc.sprite)
             }
         }
     }
@@ -76,17 +83,29 @@ class Game : NSObject {
         
         let paddle = (player == .Red) ? redPaddle : bluePaddle
         
-        let origin = CGPoint(x: paddle.position.x + 20, y: paddle.position.y)
+        let origin = CGPoint(x: paddle.position.x + 5, y: paddle.position.y)
         
         let beam = Beam(position: origin, color: SKColor.purpleColor())
         
+        switch player {
+        case .Red:
+            self.redBeam = beam
+        case .Blue:
+            self.blueBeam = beam
+        }
+        
         if let vc = beam.componentForClass(VisualComponent) {
-            gameScene.addChild(vc.shape)
+            gameScene.addChild(vc.sprite)
             
             let width = CGRectGetWidth(gameScene.frame)
             let resize = SKAction.scaleXTo(width, duration: 0.7)
-            vc.shape.runAction(resize, completion: {
-                vc.shape.removeFromParent()
+            vc.sprite.runAction(resize, completion: {
+                vc.sprite.removeFromParent()
+                
+                switch player {
+                case .Red: self.redBeam = nil
+                case .Blue: self.blueBeam = nil
+                }
             })
         }
     }
@@ -98,7 +117,7 @@ class Game : NSObject {
         }
         
         if let ball = self.invisBall, let vc_ball = ball.componentForClass(VisualComponent) {
-            let origin = vc_ball.shape.position
+            let origin = vc_ball.sprite.position
             let dx = deltaTime * Double(ball.velocity.dx)
             let dy = deltaTime * Double(ball.velocity.dy)
 
@@ -110,16 +129,16 @@ class Game : NSObject {
                 x = x + dx
             }
             
-            vc_ball.shape.position = CGPoint(x: CGFloat(x), y: origin.y + CGFloat(dy))
+            vc_ball.sprite.position = CGPoint(x: CGFloat(x), y: origin.y + CGFloat(dy))
         }
         
         if let ball = self.ball, let vc_ball = ball.componentForClass(VisualComponent) {
-            let origin = vc_ball.shape.position
+            let origin = vc_ball.sprite.position
             let dx = deltaTime * Double(ball.velocity.dx)
             let dy = deltaTime * Double(ball.velocity.dy)
-            vc_ball.shape.position = CGPoint(x: origin.x + CGFloat(dx), y: origin.y + CGFloat(dy))
+            vc_ball.sprite.position = CGPoint(x: origin.x + CGFloat(dx), y: origin.y + CGFloat(dy))
 
-            let ballFrame = vc_ball.shape.frame
+            let ballFrame = vc_ball.sprite.frame
             
             if (CGRectGetMinX(ballFrame) > CGRectGetMaxX(gameScene.frame) ||
                 CGRectGetMaxX(ballFrame) < CGRectGetMinX(gameScene.frame)) {
@@ -150,7 +169,7 @@ class Game : NSObject {
             }
             
             self.ball = spawnBall(forScene: gameScene, position: position, angle: angle, speed: Constants.ballSpeed)
-            self.invisBall = spawnBall(forScene: gameScene, position: position, angle: angle, speed: Constants.ballSpeed + 100, canHitPaddle: false)
+            self.invisBall = spawnBall(forScene: gameScene, position: position, angle: angle, speed: Constants.ballSpeed + 50, canHitPaddle: false)
         }
         
         if let ball = self.invisBall, let cpuPaddle = self.bluePaddle {
@@ -184,17 +203,29 @@ class Game : NSObject {
                 continue
             }
             
-            if CGRectGetMaxY(vc_paddle.shape.frame) >= CGRectGetMinY(vc_topWall.shape.frame) &&
+            if CGRectGetMaxY(vc_paddle.sprite.frame) >= CGRectGetMinY(vc_topWall.sprite.frame) &&
                 paddle.velocity.dy > 0 {
                 paddle.velocity = CGVector.zero
-            } else if CGRectGetMinY(vc_paddle.shape.frame) <= CGRectGetMaxY(vc_bottomWall.shape.frame) &&
+            } else if CGRectGetMinY(vc_paddle.sprite.frame) <= CGRectGetMaxY(vc_bottomWall.sprite.frame) &&
                 paddle.velocity.dy < 0 {
                 paddle.velocity = CGVector.zero
             } else {
                 let dy = deltaTime * Double(paddle.velocity.dy)
-                let origin = vc_paddle.shape.position
+                let origin = vc_paddle.sprite.position
                 let dx = 0
-                vc_paddle.shape.position = CGPoint(x: origin.x + CGFloat(dx), y: origin.y + CGFloat(dy))
+                vc_paddle.sprite.position = CGPoint(x: origin.x + CGFloat(dx), y: origin.y + CGFloat(dy))
+            }
+        }
+        
+        let beams = [redBeam, blueBeam].flatMap { $0 }
+        for beam in beams {
+            if let vc = beam.componentForClass(VisualComponent),
+                let p1_vc = redPaddle.componentForClass(VisualComponent),
+                let p2_vc = bluePaddle.componentForClass(VisualComponent) {
+                let paddleFrame = beam == redBeam ? p2_vc.sprite.frame : p1_vc.sprite.frame
+                if CGRectIntersectsRect(vc.sprite.frame, paddleFrame) {
+                    print("PADDLE HIT")
+                }
             }
         }
         
@@ -206,12 +237,10 @@ class Game : NSObject {
             return
         }
 
-        let speed = ball.speed
+        var speed = ball.speed
         
         let offset = ball.position.y + (Constants.paddleHeight / 2) - paddle.position.y
-        let relativeOffset = fmax(fmin(offset / Constants.paddleHeight, 1), 0)
-        print("offset: \(relativeOffset)")
-        
+        let relativeOffset = fmax(fmin(offset / Constants.paddleHeight, 1), 0)        
         let angleOffset = GLKMathDegreesToRadians(20)
         let reflectAngle = GLKMathDegreesToRadians(140)
         
@@ -223,15 +252,15 @@ class Game : NSObject {
             angle = relativeOffset * CGFloat(reflectAngle) + CGFloat(angleOffset) + CGFloat(M_PI)
         }
 
-//        if ((paddle.velocity.dy > 0 && ball.velocity.dy > 0) ||
-//            (paddle.velocity.dy < 0 && ball.velocity.dy < 0)) {
-//            print("increase ball speed")
-//            speed += 70
-//        } else if ((paddle.velocity.dy > 0 && ball.velocity.dy < 0) ||
-//            (paddle.velocity.dy < 0 && ball.velocity.dy > 0)) {
-//            print("decrease ball speed")
-//            speed -= 70
-//        }
+        if ((paddle.velocity.dy > 0 && ball.velocity.dy > 0) ||
+            (paddle.velocity.dy < 0 && ball.velocity.dy < 0)) {
+            print("+ speed")
+            speed += 70
+        } else if ((paddle.velocity.dy > 0 && ball.velocity.dy < 0) ||
+            (paddle.velocity.dy < 0 && ball.velocity.dy > 0)) {
+            print("- speed")
+            speed -= 70
+        }
         
         updateBall(ball, angle: Float(angle), speed: speed)
         
@@ -239,14 +268,14 @@ class Game : NSObject {
             self.invisBall = nil
         }
         
-        self.invisBall = spawnBall(forScene: scene, position: ball.position, angle: Float(angle), speed: speed + 100, canHitPaddle: false)
+        self.invisBall = spawnBall(forScene: scene, position: ball.position, angle: Float(angle), speed: speed + 50, canHitPaddle: false)
     }
-
+    
     private func handleContactBetweenBall(ball: Ball, andWall wall: Wall) {
         let velocity = ball.velocity
         ball.velocity = CGVector(dx: velocity.dx, dy: -velocity.dy)
     }
-
+    
     private func handleContactBetweenPaddle(paddle: Paddle, andWall wall: Wall) {
         paddle.velocity = CGVector.zero
     }
@@ -270,7 +299,7 @@ class Game : NSObject {
         ball = Ball(position: position, velocity: velocity, canHitPaddle: canHitPaddle)
         
         if let vc = ball.componentForClass(VisualComponent) {
-            scene.addChild(vc.shape)
+            scene.addChild(vc.sprite)
         }
         
         return ball
@@ -280,7 +309,7 @@ class Game : NSObject {
         var success = false
         
         if let vc = ball.componentForClass(VisualComponent) {
-            vc.shape.removeFromParent()
+            vc.sprite.removeFromParent()
             success = true
         }
         
@@ -294,14 +323,14 @@ extension Game : SKPhysicsContactDelegate {
     
     func didBeginContact(contact: SKPhysicsContact) {
         guard
-            let bodyA = contact.bodyA.node as? ShapeNode,
+            let bodyA = contact.bodyA.node as? SpriteNode,
             let entity1 = bodyA.entity,
-            let bodyB = contact.bodyB.node as? ShapeNode,
+            let bodyB = contact.bodyB.node as? SpriteNode,
             let entity2 = bodyB.entity else {
                 return
         }
         
-        print("contact: \(entity1), \(entity2)")
+//        print("contact: \(entity1), \(entity2)")
         
         switch (entity1, entity2) {
         case (is Paddle, is Wall):

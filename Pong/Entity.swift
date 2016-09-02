@@ -17,7 +17,7 @@ class Entity : GKEntity {
             var position = CGPoint.zero
             
             if let vc = componentForClass(VisualComponent) {
-                position = vc.shape.position
+                position = vc.sprite.position
             }
             
             return position

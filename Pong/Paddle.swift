@@ -16,17 +16,21 @@ class Paddle : Entity {
         
         let rect = CGRect(x: 0, y: 0, width: 10, height: Constants.paddleHeight)
         let path = CGPathCreateWithRect(rect, nil)
-        let shape = ShapeNode(path: path, centered: true)
-        shape.entity = self
+        let shape = SKShapeNode(path: path, centered: true)
         shape.fillColor = color
         shape.strokeColor = color
-        shape.position = position
-        let vc = VisualComponent(shape: shape)
+
+        let convertView = SKView()
+        let sprite = SpriteNode(texture: convertView.textureFromNode(shape))
+        sprite.entity = self
+        sprite.position = position
+        
+        let vc = VisualComponent(sprite: sprite)
         addComponent(vc)
         
-        vc.shape.physicsBody = SKPhysicsBody(rectangleOfSize: rect.size)
-        vc.shape.physicsBody?.categoryBitMask = EntityCategory.Paddle
-        vc.shape.physicsBody?.contactTestBitMask = EntityCategory.Wall
-        vc.shape.physicsBody?.collisionBitMask = EntityCategory.Nothing
+        vc.sprite.physicsBody = SKPhysicsBody(rectangleOfSize: rect.size)
+        vc.sprite.physicsBody?.categoryBitMask = EntityCategory.Paddle
+        vc.sprite.physicsBody?.contactTestBitMask = EntityCategory.Wall
+        vc.sprite.physicsBody?.collisionBitMask = EntityCategory.Nothing
     }
 }

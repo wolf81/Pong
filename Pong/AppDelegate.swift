@@ -18,7 +18,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func applicationDidFinishLaunching(aNotification: NSNotification) {
         /* Pick a size for the scene */
-        if let scene = GameScene(fileNamed:"GameScene") {
+        let scene = GameScene(size: CGSize(width: 1280, height: 960))
             /* Set the scale mode to scale to fit the window */
             scene.scaleMode = .AspectFit
             
@@ -30,8 +30,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self.skView!.showsFPS = true
             self.skView!.showsNodeCount = true
             scene.physicsWorld.gravity = CGVector()
-//            self.skView!.showsPhysics = true
-        }
+            self.skView!.showsPhysics = false
     }
     
     func applicationShouldTerminateAfterLastWindowClosed(sender: NSApplication) -> Bool {

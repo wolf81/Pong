@@ -12,20 +12,24 @@ class Wall : Entity {
     init(position: CGPoint, size: CGSize, color: SKColor) {
         super.init()
         
+        let convertView = SKView()
+        
         let rect = CGRect(x: 0, y: 0, width: size.width, height: size.height)
         let path = CGPathCreateWithRect(rect, nil)
-        let shape = ShapeNode(path: path, centered: false)
-        shape.entity = self
+        let shape = SKShapeNode(path: path, centered: false)
         shape.fillColor = color
         shape.strokeColor = color
-        shape.position = position
-        let vc = VisualComponent(shape: shape)
+
+        let sprite = SpriteNode(texture: convertView.textureFromNode(shape))
+        sprite.entity = self
+        sprite.position = position
+        let vc = VisualComponent(sprite: sprite)
         addComponent(vc)
         
-        vc.shape.physicsBody = SKPhysicsBody(polygonFromPath: path)
-        vc.shape.physicsBody?.affectedByGravity = false
-        vc.shape.physicsBody?.categoryBitMask = EntityCategory.Wall
-        vc.shape.physicsBody?.contactTestBitMask = EntityCategory.Nothing
-        vc.shape.physicsBody?.collisionBitMask = EntityCategory.Nothing
+        vc.sprite.physicsBody = SKPhysicsBody(texture: sprite.texture!, size: sprite.size)
+        vc.sprite.physicsBody?.affectedByGravity = false
+        vc.sprite.physicsBody?.categoryBitMask = EntityCategory.Wall
+        vc.sprite.physicsBody?.contactTestBitMask = EntityCategory.Nothing
+        vc.sprite.physicsBody?.collisionBitMask = EntityCategory.Nothing
     }
 }

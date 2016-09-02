@@ -10,10 +10,10 @@ import GameKit
 import SpriteKit
 
 class VisualComponent : GKComponent {
-    private(set) var shape: SKShapeNode
+    private(set) var sprite: SKSpriteNode
     
-    init(shape: SKShapeNode) {
-        self.shape = shape
+    init(sprite: SKSpriteNode) {
+        self.sprite = sprite
         
         super.init()
     }

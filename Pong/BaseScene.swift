@@ -10,6 +10,23 @@ import SpriteKit
 
 class BaseScene : SKScene {
 
+    override init(size: CGSize) {
+        super.init(size: size)
+
+        commonInit()
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        
+        commonInit()
+    }
+    
+    private func commonInit() {
+        name = NSStringFromClass(self.dynamicType)
+    }
+
+    
     override func keyDown(theEvent: NSEvent) {
         if let playerAction = playerActionForKeyCode(theEvent.keyCode) {
             switch playerAction.action {
