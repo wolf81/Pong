@@ -1,4 +1,4 @@
-//
+ //
 //  Paddle.swift
 //  Pong
 //
@@ -36,20 +36,27 @@ class Paddle : Entity {
         vc.sprite.physicsBody?.collisionBitMask = EntityCategory.Nothing
     }
     
-    func addHole(rect: CGRect) {
+    func addHole(y: CGFloat, height: CGFloat) {
+        let rect = CGRect(x: 0, y: Constants.paddleHeight - (y + height / 2), width: Constants.paddleWidth, height: height)
+
         holeRects.removeAll()
         holeRects.append(rect)
-        
+
         let path = CGPathCreateMutable()
-        CGPathMoveToPoint(path, nil, 0, 0)
-        CGPathAddLineToPoint(path, nil, Constants.paddleWidth, 0)
-        CGPathAddLineToPoint(path, nil, Constants.paddleWidth, Constants.paddleHeight)
-        CGPathAddLineToPoint(path, nil, 0, Constants.paddleHeight)
-        CGPathCloseSubpath(path)
         
-        let shape = SKShapeNode(path: path, centered: true)
-        shape.fillColor = SKColor.orangeColor()
-        shape.strokeColor = SKColor.grayColor()
+        var height: CGFloat = CGRectGetMinY(rect)
+        var y: CGFloat = Constants.paddleWidth
+        let rect1 = CGRect(x: 0, y: 0, width: Constants.paddleWidth, height: height)
+        
+        y = CGRectGetMaxY(rect)
+        height = Constants.paddleHeight - y
+        let rect2 = CGRect(x: 0, y: y, width: Constants.paddleWidth, height: height)
+        
+        CGPathAddRects(path, nil, [rect1, rect2], 2)
+        
+        let shape = SKShapeNode(path: path)
+        shape.fillColor = SKColor.blueColor()
+        shape.strokeColor = SKColor.purpleColor()
         
         let sprite = SpriteNode(texture: shape.texture)
         sprite.entity = self

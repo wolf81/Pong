@@ -228,24 +228,16 @@ class Game : NSObject {
                 let p2_vc = bluePaddle.componentForClass(VisualComponent) {
                 let paddleFrame = beam == redBeam ? p2_vc.sprite.frame : p1_vc.sprite.frame
                 if CGRectIntersectsRect(vc.sprite.frame, paddleFrame) {
-                    var origin = vc.sprite.position
-                    let size = CGSize(width: Constants.paddleWidth, height: Constants.beamHeight)
+                    var origin = CGPoint(x: 0, y: vc.sprite.position.y - Constants.paddleHeight / 2)
                     
                     if beam == redBeam {
-                        origin = gameScene.convertPoint(origin, toNode: p2_vc.sprite)
-                        origin.x = 0
-                        origin.y += (Constants.paddleHeight / 2)
-//                        origin.y = Constants.paddleHeight - origin.y
-                        
-                        let rect = CGRect(origin: origin, size: size)
-                        bluePaddle.addHole(rect)
+                        var origin = p2_vc.sprite.convertPoint(vc.sprite.position, fromNode: gameScene)
+                        origin.y += Constants.paddleHeight / 2
+                        origin.y = Constants.paddleHeight - origin.y
+                        bluePaddle.addHole(origin.y, height: Constants.beamHeight)
                     } else {
-                        origin = gameScene.convertPoint(origin, toNode: p1_vc.sprite)
-                        origin.x = 0
-                        origin.y += (Constants.paddleHeight / 2)
-                        
-                        let rect = CGRect(origin: origin, size: size)
-                        redPaddle.addHole(rect)
+                        origin = gameScene.convertPoint(origin, toNode: p2_vc.sprite)
+                        redPaddle.addHole(origin.y, height: Constants.beamHeight)
                     }
                 }
             }
