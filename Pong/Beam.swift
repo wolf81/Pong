@@ -22,7 +22,9 @@ class Beam : Entity {
         sprite.entity = self        
         sprite.position = position
         sprite.anchorPoint = CGPoint(x: 0, y: 0.5)
+        
         let vc = VisualComponent(sprite: sprite)
+        vc.sprite.zPosition = EntityLayer.Beam.rawValue
         addComponent(vc)
     }
 }

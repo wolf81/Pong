@@ -30,6 +30,7 @@ class Ball : Entity {
         sprite.position = position
         
         let vc = VisualComponent(sprite: sprite)
+        vc.sprite.zPosition = EntityLayer.Ball.rawValue
         addComponent(vc)
         
         vc.sprite.physicsBody = SKPhysicsBody(circleOfRadius: r / 2, center: CGPoint.zero)

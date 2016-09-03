@@ -61,6 +61,10 @@ class Game : NSObject {
     }
 
     func movePaddle(direction: Direction, forPlayer player: Player) {
+        if player == .Blue {
+            return
+        }
+        
         let paddle = (player == .Red) ? redPaddle : bluePaddle
         
         let dy: CGFloat = CGFloat(paddle.speed)
@@ -224,7 +228,25 @@ class Game : NSObject {
                 let p2_vc = bluePaddle.componentForClass(VisualComponent) {
                 let paddleFrame = beam == redBeam ? p2_vc.sprite.frame : p1_vc.sprite.frame
                 if CGRectIntersectsRect(vc.sprite.frame, paddleFrame) {
-                    print("PADDLE HIT")
+                    var origin = vc.sprite.position
+                    let size = CGSize(width: Constants.paddleWidth, height: Constants.beamHeight)
+                    
+                    if beam == redBeam {
+                        origin = gameScene.convertPoint(origin, toNode: p2_vc.sprite)
+                        origin.x = 0
+                        origin.y += (Constants.paddleHeight / 2)
+//                        origin.y = Constants.paddleHeight - origin.y
+                        
+                        let rect = CGRect(origin: origin, size: size)
+                        bluePaddle.addHole(rect)
+                    } else {
+                        origin = gameScene.convertPoint(origin, toNode: p1_vc.sprite)
+                        origin.x = 0
+                        origin.y += (Constants.paddleHeight / 2)
+                        
+                        let rect = CGRect(origin: origin, size: size)
+                        redPaddle.addHole(rect)
+                    }
                 }
             }
         }

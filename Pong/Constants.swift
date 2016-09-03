@@ -8,6 +8,26 @@
 
 import Foundation
 
+//// zPositions of entities.
+//enum EntityLayer: CGFloat {
+//    case Bomb = 1
+//    case Explosion
+//    case Tile
+//    case Prop
+//    case PowerUp
+//    case Monster
+//    case Projectile
+//    case Player
+//    case Points
+//}
+
+enum EntityLayer : CGFloat {
+    case Wall = 1
+    case Ball
+    case Paddle
+    case Beam
+}
+
 struct EntityCategory {
     static let Nothing:     UInt32 = 0
     static let Ball:        UInt32 = 0b1
@@ -17,10 +37,12 @@ struct EntityCategory {
 }
 
 struct Constants {
-    static let paddleHeight: CGFloat = 100
+    static let paddleHeight: CGFloat = 200
+    static let paddleWidth: CGFloat = 15
+    
     static let paddleSpeed: Float = 380
     static let ballSpeed: Float = 650
-    static let beamHeight: CGFloat = 10
+    static let beamHeight: CGFloat = 30
 }
 
 enum Direction: Int {
