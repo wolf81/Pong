@@ -28,7 +28,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             skView.showsFPS = true
             skView.showsDrawCount = true
             skView.showsNodeCount = true
-            skView.showsPhysics = false
+            skView.showsPhysics = true
             skView.asynchronous = false
         }
     }

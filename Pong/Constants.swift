@@ -8,24 +8,13 @@
 
 import Foundation
 
-//// zPositions of entities.
-//enum EntityLayer: CGFloat {
-//    case Bomb = 1
-//    case Explosion
-//    case Tile
-//    case Prop
-//    case PowerUp
-//    case Monster
-//    case Projectile
-//    case Player
-//    case Points
-//}
-
+// zPositions of entities.
 enum EntityLayer : CGFloat {
     case Wall = 1
     case Ball
     case Paddle
-    case Beam
+    case PaddleFragment
+    case Beam = 1000
 }
 
 struct EntityCategory {

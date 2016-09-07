@@ -44,7 +44,7 @@ class Game : NSObject {
         redPaddle = Paddle(position: CGPoint(x: offset, y: y), color: SKColor.redColor())
         bluePaddle = Paddle(position: CGPoint(x: gameScene.frame.width - offset, y: y), color: SKColor.blueColor())
         
-        let size = CGSize(width: gameScene.frame.width, height: 4.0)
+        let size = CGSize(width: gameScene.frame.width + 10, height: 4.0)
         let topY = gameScene.frame.height - size.height - 60
         
         let x = CGRectGetMidX(gameScene.frame)
@@ -64,7 +64,7 @@ class Game : NSObject {
         if player == .Blue {
             return
         }
-        
+
         let paddle = (player == .Red) ? redPaddle : bluePaddle
         
         let dy: CGFloat = CGFloat(paddle.speed)
@@ -223,20 +223,20 @@ class Game : NSObject {
         
         let beams = [redBeam, blueBeam].flatMap { $0 }
         for beam in beams {
-            if let vc = beam.componentForClass(VisualComponent),
-                let p1_vc = redPaddle.componentForClass(VisualComponent),
-                let p2_vc = bluePaddle.componentForClass(VisualComponent) {
-                let paddleFrame = beam == redBeam ? p2_vc.sprite.frame : p1_vc.sprite.frame
-                if CGRectIntersectsRect(vc.sprite.frame, paddleFrame) {
-                    var origin = CGPoint(x: 0, y: vc.sprite.position.y - Constants.paddleHeight / 2)
+            if let beamVc = beam.componentForClass(VisualComponent),
+                let redPaddleVc = redPaddle.componentForClass(VisualComponent),
+                let bluePaddleVc = bluePaddle.componentForClass(VisualComponent) {
+                let paddleFrame = beam == redBeam ? bluePaddleVc.sprite.frame : redPaddleVc.sprite.frame
+                if CGRectIntersectsRect(beamVc.sprite.frame, paddleFrame) {
+                    var origin = CGPoint(x: 0, y: beamVc.sprite.position.y - Constants.paddleHeight / 2)
                     
                     if beam == redBeam {
-                        var origin = p2_vc.sprite.convertPoint(vc.sprite.position, fromNode: gameScene)
+                        var origin = bluePaddleVc.sprite.convertPoint(beamVc.sprite.position, fromNode: gameScene)
                         origin.y += Constants.paddleHeight / 2
                         origin.y = Constants.paddleHeight - origin.y
                         bluePaddle.addHole(origin.y, height: Constants.beamHeight)
                     } else {
-                        origin = gameScene.convertPoint(origin, toNode: p2_vc.sprite)
+                        origin = gameScene.convertPoint(origin, toNode: bluePaddleVc.sprite)
                         redPaddle.addHole(origin.y, height: Constants.beamHeight)
                     }
                 }

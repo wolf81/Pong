@@ -16,11 +16,7 @@ class Paddle : Entity {
         
         self.speed = Constants.paddleSpeed
         
-        let rect = CGRect(x: 0, y: 0, width: Constants.paddleWidth, height: Constants.paddleHeight)
-        let path = CGPathCreateWithRect(rect, nil)
-        let shape = SKShapeNode(path: path, centered: true)
-        shape.fillColor = color
-        shape.strokeColor = color
+        let shape = paddleShapeWithColor(color)
         
         let sprite = SpriteNode(texture: shape.texture)
         sprite.entity = self
@@ -30,77 +26,80 @@ class Paddle : Entity {
         vc.sprite.zPosition = EntityLayer.Paddle.rawValue
         addComponent(vc)
         
-        vc.sprite.physicsBody = SKPhysicsBody(rectangleOfSize: rect.size)
+        vc.sprite.physicsBody = SKPhysicsBody(rectangleOfSize: shape.frame.size)
         vc.sprite.physicsBody?.categoryBitMask = EntityCategory.Paddle
         vc.sprite.physicsBody?.contactTestBitMask = EntityCategory.Wall
         vc.sprite.physicsBody?.collisionBitMask = EntityCategory.Nothing
     }
     
     func addHole(y: CGFloat, height: CGFloat) {
-        let rect = CGRect(x: 0, y: Constants.paddleHeight - (y + height / 2), width: Constants.paddleWidth, height: height)
-
-        holeRects.removeAll()
-        holeRects.append(rect)
-
-        let path = CGPathCreateMutable()
+        let y = Constants.paddleHeight - y
         
-        var height: CGFloat = CGRectGetMinY(rect)
-        var y: CGFloat = Constants.paddleWidth
-        let rect1 = CGRect(x: 0, y: 0, width: Constants.paddleWidth, height: height)
-        
-        y = CGRectGetMaxY(rect)
-        height = Constants.paddleHeight - y
-        let rect2 = CGRect(x: 0, y: y, width: Constants.paddleWidth, height: height)
-        
-        CGPathAddRects(path, nil, [rect1, rect2], 2)
-        
-        let shape = SKShapeNode(path: path)
-        shape.fillColor = SKColor.blueColor()
-        shape.strokeColor = SKColor.purpleColor()
-        
-        let sprite = SpriteNode(texture: shape.texture)
-        sprite.entity = self
-        sprite.position = position
-
-        
-        guard let oldVc = componentForClass(VisualComponent),
-            let gameScene = oldVc.sprite.parent as? GameScene else {
-                return
+        let rect = CGRect(x: 0, y: y, width: Constants.paddleWidth, height: height)
+        if holeRects.contains(rect) {
+            return
+        } else {
+            holeRects.removeAll()
+            holeRects.append(rect)
         }
         
-        let vc = VisualComponent(sprite: sprite)
+        let hole_y1 = y - height / 2
+        let hole_y2 = y + height / 2
         
-        vc.sprite.zPosition = EntityLayer.Paddle.rawValue
-        addComponent(vc)
+        print("\naddHole -> y: \(y) height: \(height)\n")
 
-        vc.sprite.physicsBody = SKPhysicsBody(rectangleOfSize: rect.size)
-        vc.sprite.physicsBody?.categoryBitMask = EntityCategory.Paddle
-        vc.sprite.physicsBody?.contactTestBitMask = EntityCategory.Wall
-        vc.sprite.physicsBody?.collisionBitMask = EntityCategory.Nothing
+        var paddleRects = [CGRect]()
         
+        let h1 = Constants.paddleHeight - hole_y2
+        let y1 = (Constants.paddleHeight - h1) / 2
+        let rect1 = CGRect(x: 0, y: y1, width: Constants.paddleWidth, height: h1)
+        paddleRects.append(rect1)
+
+        let h2 = hole_y1
+        let y2: CGFloat = -(Constants.paddleHeight - h2) / 2
+        let rect2 = CGRect(x: 0, y: y2, width: Constants.paddleWidth, height: h2)
+        paddleRects.append(rect2)
         
-        oldVc.sprite.removeFromParent()
-        gameScene.addChild(vc.sprite)
+        guard let vc = componentForClass(VisualComponent) else {
+            return
+        }
         
-//        let y: CGFloat = fmin(fmax(rect.origin.y, 0), Constants.paddleHeight)
-//        var newHoleRect = CGRectMake(0, y, Constants.paddleWidth, rect.height)
-//        
-//        var newHoleRects = [CGRect]()
-//        
-//        for holeRect in holeRects {
-//            if CGRectIntersectsRect(holeRect, newHoleRect) {
-//                newHoleRect = CGRectUnion(holeRect, newHoleRect)
-//            } else {
-//                newHoleRects.append(holeRect)
-//            }
-//        }
-//
-//        newHoleRects.append(newHoleRect)
-//
-//        newHoleRects = newHoleRects.sort({ $0.origin.y < $1.origin.y })
-//        
-//        holeRects = newHoleRects
+        vc.sprite.removeAllChildren()
+
+        let shape = paddleShapeWithColor(SKColor.yellowColor())
+        let sprite = SpriteNode(texture: shape.texture)
+        vc.replaceSprite(sprite)
+        vc.sprite.physicsBody = nil
         
-        print("\(holeRects.count):\n \(holeRects)")
+        for rect in paddleRects {
+            print("\(rect)")
+            let shape = paddleShapeWithColor(SKColor.blueColor(), size: rect.size)
+            let sprite = SpriteNode(texture: shape.texture)
+            sprite.zPosition = EntityLayer.PaddleFragment.rawValue
+            sprite.position = rect.origin
+            sprite.physicsBody = SKPhysicsBody(rectangleOfSize: shape.frame.size)
+            sprite.physicsBody?.categoryBitMask = EntityCategory.Paddle
+            sprite.physicsBody?.contactTestBitMask = EntityCategory.Wall
+            sprite.physicsBody?.collisionBitMask = EntityCategory.Nothing
+            vc.sprite.addChild(sprite)
+        }
+    }
+    
+    private func paddleShapeWithColor(color: SKColor, size: CGSize) -> SKShapeNode {
+        var shape: SKShapeNode
+        
+        let rect = CGRect(origin: CGPoint.zero, size: size)
+        let path = CGPathCreateWithRect(rect, nil)
+        shape = SKShapeNode(path: path, centered: true)
+        shape.fillColor = color
+        shape.strokeColor = color
+        
+        return shape
+    }
+
+    
+    private func paddleShapeWithColor(color: SKColor) -> SKShapeNode {
+        let size = CGSize(width: Constants.paddleWidth, height: Constants.paddleHeight)
+        return paddleShapeWithColor(color, size: size)
     }
 }

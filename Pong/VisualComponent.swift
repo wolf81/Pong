@@ -17,4 +17,17 @@ class VisualComponent : GKComponent {
         
         super.init()
     }
+    
+    func replaceSprite(newSprite: SKSpriteNode) {
+        let parent = sprite.parent
+        let position = sprite.position
+        let zPosition = sprite.zPosition
+
+        sprite.removeFromParent()
+        
+        self.sprite = newSprite
+        self.sprite.position = position
+        self.sprite.zPosition = zPosition
+        parent?.addChild(self.sprite)
+    }
 }
