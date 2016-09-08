@@ -9,7 +9,7 @@
 import SpriteKit
 
 class Paddle : Entity {
-    private var holeRanges = [Range<Int>]()
+    private var paddleRanges = [Range<Int>]()
     
     init(position: CGPoint, color: SKColor) {
         super.init()
@@ -35,38 +35,33 @@ class Paddle : Entity {
     func addHole(y: CGFloat, height: CGFloat) {
         let y = Constants.paddleHeight - y
 
-        let hole_y1 = fmax(y - height / 2, 0)
-        let hole_y2 = fmin(y + height / 2, Constants.paddleHeight)
+        let hole_y1 = fmin(fmax(y - height / 2, 0), Constants.paddleHeight)
+        let hole_y2 = fmax(fmin(y + height / 2, Constants.paddleHeight), 0)
 
-        let range = Int(hole_y1) ..< Int(hole_y2)
-        print("range: \(range)")
-        if holeRanges.contains(range) {
-            return
+        paddleRanges.removeAll()
+        
+        if hole_y1 == 0 {
+            paddleRanges.append(Int(hole_y2) ..< Int(Constants.paddleHeight))
+        } else if hole_y2 == Constants.paddleHeight {
+            paddleRanges.append(Int(0) ... Int(hole_y1))
         } else {
-            holeRanges.removeAll()
-            holeRanges.append(range)
+            paddleRanges.append(Int(0) ... Int(hole_y1))
+            paddleRanges.append(Int(hole_y2) ..< Int(Constants.paddleHeight))
+        }
+
+        print("\n")
+        for range in paddleRanges {
+            print("range: \(range)")
         }
         
-//        print("\naddHole -> y: \(y) height: \(height)\n")
-
         var paddleRects = [CGRect]()
         
-        let h1 = Constants.paddleHeight - hole_y2
-        
-        if h1 > 0 {
-            let y1 = (Constants.paddleHeight - h1) / 2
-            let rect1 = CGRect(x: 0, y: y1, width: Constants.paddleWidth, height: h1)
-            paddleRects.append(rect1)
+        for range in paddleRanges {
+            let h1 = range.endIndex - range.startIndex
+            let y1 = range.startIndex + h1 / 2 - (Int(Constants.paddleHeight) / 2)
+            let rect = CGRect(x: 0, y: y1, width: Int(Constants.paddleWidth), height: h1)
+            paddleRects.append(rect)
         }
-
-        let h2 = hole_y1
-        
-        if h2 > 0 {
-            let y2: CGFloat = -(Constants.paddleHeight - h2) / 2
-            let rect2 = CGRect(x: 0, y: y2, width: Constants.paddleWidth, height: h2)
-            paddleRects.append(rect2)
-        }
-        
         
         guard let vc = componentForClass(VisualComponent) else {
             return
