@@ -35,10 +35,32 @@ class Paddle : Entity {
     func addHole(y: CGFloat, height: CGFloat) {
         let y = Constants.paddleHeight - y
 
+        // STEP 1: Create hole ranges
+        //          => hole range intersects existing hole range:
+        //              - y: create union
+        //              - n: create new hole range
+        // STEP 2: Convert hole ranges into paddle ranges
+        //          => more or less the inverse when taking into account paddle frame
+        // STEP 3: Create sprites for paddle fragments
+        
         let hole_y1 = fmin(fmax(y - height / 2, 0), Constants.paddleHeight)
         let hole_y2 = fmax(fmin(y + height / 2, Constants.paddleHeight), 0)
 
-        paddleRanges.removeAll()
+        var ranges = [Range<Int>]()
+        for range in paddleRanges {
+            if range.contains(Int(hole_y1)) {
+                return
+            } else if range.contains(Int(hole_y2)) {
+                return
+            } else {
+                ranges.append(range)
+            }
+        }
+        
+        paddleRanges = ranges
+        print("paddleRanges: \(paddleRanges)")
+        
+//        paddleRanges.removeAll()
         
         if hole_y1 == 0 {
             paddleRanges.append(Int(hole_y2) ..< Int(Constants.paddleHeight))
