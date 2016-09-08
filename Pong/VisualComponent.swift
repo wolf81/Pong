@@ -10,24 +10,26 @@ import GameKit
 import SpriteKit
 
 class VisualComponent : GKComponent {
-    private(set) var sprite: SKSpriteNode
+    private(set) var sprite: SpriteNode
     
-    init(sprite: SKSpriteNode) {
+    init(sprite: SpriteNode) {
         self.sprite = sprite
         
         super.init()
     }
     
-    func replaceSprite(newSprite: SKSpriteNode) {
+    func replaceSprite(newSprite: SpriteNode) {
         let parent = sprite.parent
         let position = sprite.position
         let zPosition = sprite.zPosition
+        let entity = sprite.entity
 
         sprite.removeFromParent()
         
         self.sprite = newSprite
         self.sprite.position = position
         self.sprite.zPosition = zPosition
+        self.sprite.entity = entity
         parent?.addChild(self.sprite)
     }
 }

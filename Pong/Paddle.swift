@@ -9,7 +9,7 @@
 import SpriteKit
 
 class Paddle : Entity {
-    private var holeRects = [CGRect]()
+    private var holeRanges = [Range<Int>]()
     
     init(position: CGPoint, color: SKColor) {
         super.init()
@@ -34,31 +34,39 @@ class Paddle : Entity {
     
     func addHole(y: CGFloat, height: CGFloat) {
         let y = Constants.paddleHeight - y
-        
-        let rect = CGRect(x: 0, y: y, width: Constants.paddleWidth, height: height)
-        if holeRects.contains(rect) {
+
+        let hole_y1 = fmax(y - height / 2, 0)
+        let hole_y2 = fmin(y + height / 2, Constants.paddleHeight)
+
+        let range = Int(hole_y1) ..< Int(hole_y2)
+        print("range: \(range)")
+        if holeRanges.contains(range) {
             return
         } else {
-            holeRects.removeAll()
-            holeRects.append(rect)
+            holeRanges.removeAll()
+            holeRanges.append(range)
         }
         
-        let hole_y1 = y - height / 2
-        let hole_y2 = y + height / 2
-        
-        print("\naddHole -> y: \(y) height: \(height)\n")
+//        print("\naddHole -> y: \(y) height: \(height)\n")
 
         var paddleRects = [CGRect]()
         
         let h1 = Constants.paddleHeight - hole_y2
-        let y1 = (Constants.paddleHeight - h1) / 2
-        let rect1 = CGRect(x: 0, y: y1, width: Constants.paddleWidth, height: h1)
-        paddleRects.append(rect1)
+        
+        if h1 > 0 {
+            let y1 = (Constants.paddleHeight - h1) / 2
+            let rect1 = CGRect(x: 0, y: y1, width: Constants.paddleWidth, height: h1)
+            paddleRects.append(rect1)
+        }
 
         let h2 = hole_y1
-        let y2: CGFloat = -(Constants.paddleHeight - h2) / 2
-        let rect2 = CGRect(x: 0, y: y2, width: Constants.paddleWidth, height: h2)
-        paddleRects.append(rect2)
+        
+        if h2 > 0 {
+            let y2: CGFloat = -(Constants.paddleHeight - h2) / 2
+            let rect2 = CGRect(x: 0, y: y2, width: Constants.paddleWidth, height: h2)
+            paddleRects.append(rect2)
+        }
+        
         
         guard let vc = componentForClass(VisualComponent) else {
             return
@@ -66,23 +74,29 @@ class Paddle : Entity {
         
         vc.sprite.removeAllChildren()
 
-        let shape = paddleShapeWithColor(SKColor.yellowColor())
+        let shape = paddleShapeWithColor(SKColor.clearColor())
         let sprite = SpriteNode(texture: shape.texture)
         vc.replaceSprite(sprite)
-        vc.sprite.physicsBody = nil
-        
+
+        var pBodies = [SKPhysicsBody]()
         for rect in paddleRects {
-            print("\(rect)")
             let shape = paddleShapeWithColor(SKColor.blueColor(), size: rect.size)
             let sprite = SpriteNode(texture: shape.texture)
             sprite.zPosition = EntityLayer.PaddleFragment.rawValue
             sprite.position = rect.origin
-            sprite.physicsBody = SKPhysicsBody(rectangleOfSize: shape.frame.size)
-            sprite.physicsBody?.categoryBitMask = EntityCategory.Paddle
-            sprite.physicsBody?.contactTestBitMask = EntityCategory.Wall
-            sprite.physicsBody?.collisionBitMask = EntityCategory.Nothing
+
             vc.sprite.addChild(sprite)
+            
+            let pBody = SKPhysicsBody(rectangleOfSize: shape.frame.size, center: rect.origin)
+            pBodies.append(pBody)
         }
+        
+        let pBody = SKPhysicsBody(bodies: pBodies)
+        pBody.collisionBitMask = EntityCategory.Nothing
+        pBody.contactTestBitMask = EntityCategory.Wall
+        pBody.categoryBitMask = EntityCategory.Paddle
+
+        vc.sprite.physicsBody = pBody
     }
     
     private func paddleShapeWithColor(color: SKColor, size: CGSize) -> SKShapeNode {
