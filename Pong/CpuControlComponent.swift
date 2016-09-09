@@ -30,17 +30,17 @@ class CpuControlComponent : GKComponent {
         if range.contains(ball.position.y) == false {
             if cpuPaddle.position.y > ball.position.y {
                 if cpuPaddle.velocity.dy >= 0 {
-                    game.movePaddle(Direction.Down, forPlayer: .Blue)
+                    game.movePaddle(Direction.Down, forPlayer: cpuPaddle.player)
                 }
             } else if cpuPaddle.position.y < ball.position.y {
                 if cpuPaddle.velocity.dy <= 0 {
-                    game.movePaddle(Direction.Up, forPlayer: .Blue)
+                    game.movePaddle(Direction.Up, forPlayer: cpuPaddle.player)
                 }
             } else {
-                game.movePaddle(Direction.None, forPlayer: .Blue)
+                game.movePaddle(Direction.None, forPlayer: cpuPaddle.player)
             }
         } else {
-            game.movePaddle(Direction.None, forPlayer: .Blue)
+            game.movePaddle(Direction.None, forPlayer: cpuPaddle.player)
         }
     }
 }

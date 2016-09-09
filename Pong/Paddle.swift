@@ -11,9 +11,11 @@ import SpriteKit
 class Paddle : Entity {
     var paddleRepr = [Int]()
     
-//    private var holeRanges = [Range<Int>]()
+    private (set) var player: Player
     
-    init(control: Control, position: CGPoint, color: SKColor) {
+    init(forPlayer player: Player, withControl control: Control, position: CGPoint, color: SKColor) {
+        self.player = player
+
         super.init()
         
         for _ in 0 ..< Int(Constants.paddleHeight) {

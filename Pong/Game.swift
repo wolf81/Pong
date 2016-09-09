@@ -42,8 +42,8 @@ class Game : NSObject {
         
         gameScene.backgroundColor = SKColor.lightGrayColor()
         
-        redPaddle = Paddle(control: .Human, position: CGPoint(x: offset, y: y), color: SKColor.redColor())
-        bluePaddle = Paddle(control: .Cpu, position: CGPoint(x: gameScene.frame.width - offset, y: y), color: SKColor.blueColor())
+        redPaddle = Paddle(forPlayer: .Red, withControl: .Cpu, position: CGPoint(x: offset, y: y), color: SKColor.redColor())
+        bluePaddle = Paddle(forPlayer: .Blue, withControl: .Cpu, position: CGPoint(x: gameScene.frame.width - offset, y: y), color: SKColor.blueColor())
         
         let size = CGSize(width: gameScene.frame.width + 10, height: 4.0)
         let topY = gameScene.frame.height - size.height - 60
