@@ -12,6 +12,7 @@ import Foundation
 enum EntityLayer : CGFloat {
     case Wall = 1
     case Ball
+    case Block
     case Paddle
     case PaddleFragment
     case Beam = 1000
@@ -22,7 +23,8 @@ struct EntityCategory {
     static let Ball:        UInt32 = 0b1
     static let Paddle:      UInt32 = 0b10
     static let Wall:        UInt32 = 0b100
-    static let Beam:        UInt32 = 0b1000
+    static let Block:       UInt32 = 0b1000
+    static let Beam:        UInt32 = 0b10000
 }
 
 struct Constants {

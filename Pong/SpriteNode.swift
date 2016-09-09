@@ -9,13 +9,5 @@
 import SpriteKit
 
 class SpriteNode : SKSpriteNode {
-    weak var entity: Entity?
-    
-    override init(texture: SKTexture?, color: NSColor, size: CGSize) {
-        super.init(texture: texture, color: color, size: size)
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-    }
+    weak var entity: Entity?    
 }

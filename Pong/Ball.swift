@@ -38,9 +38,9 @@ class Ball : Entity {
         vc.sprite.physicsBody?.collisionBitMask = EntityCategory.Nothing
         
         if canHitPaddle {
-            vc.sprite.physicsBody?.contactTestBitMask = EntityCategory.Paddle | EntityCategory.Wall
+            vc.sprite.physicsBody?.contactTestBitMask = EntityCategory.Paddle | EntityCategory.Wall | EntityCategory.Block
         } else {
-            vc.sprite.physicsBody?.contactTestBitMask = EntityCategory.Wall
+            vc.sprite.physicsBody?.contactTestBitMask = EntityCategory.Wall | EntityCategory.Block
         }
         
         vc.sprite.physicsBody?.usesPreciseCollisionDetection = true

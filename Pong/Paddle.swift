@@ -18,7 +18,7 @@ class Paddle : Entity {
 
         super.init()
         
-        for _ in 0 ..< Int(Constants.paddleHeight) {
+        (0 ..< Int(Constants.paddleHeight)).forEach { i in
             paddleRepr.append(1)
         }
         

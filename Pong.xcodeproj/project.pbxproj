@@ -22,6 +22,7 @@
 		795F77F51D72D24C00CCF863 /* Wall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 795F77F41D72D24C00CCF863 /* Wall.swift */; };
 		798122701D7546E700A84F49 /* BaseScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7981226F1D7546E700A84F49 /* BaseScene.swift */; };
 		79B1ED1D1D82AF820061C707 /* CpuControlComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B1ED1C1D82AF820061C707 /* CpuControlComponent.swift */; };
+		79B1ED1F1D82EE000061C707 /* Block.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B1ED1E1D82EE000061C707 /* Block.swift */; };
 		79C5F1441D7949980075689A /* Beam.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C5F1431D7949980075689A /* Beam.swift */; };
 		79C5F1481D798AFC0075689A /* SKShapeNode+Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C5F1471D798AFC0075689A /* SKShapeNode+Utility.swift */; };
 /* End PBXBuildFile section */
@@ -44,6 +45,7 @@
 		795F77F41D72D24C00CCF863 /* Wall.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Wall.swift; sourceTree = "<group>"; };
 		7981226F1D7546E700A84F49 /* BaseScene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BaseScene.swift; sourceTree = "<group>"; };
 		79B1ED1C1D82AF820061C707 /* CpuControlComponent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CpuControlComponent.swift; sourceTree = "<group>"; };
+		79B1ED1E1D82EE000061C707 /* Block.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Block.swift; sourceTree = "<group>"; };
 		79C5F1431D7949980075689A /* Beam.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Beam.swift; sourceTree = "<group>"; };
 		79C5F1471D798AFC0075689A /* SKShapeNode+Utility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "SKShapeNode+Utility.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -96,6 +98,7 @@
 				79C5F1471D798AFC0075689A /* SKShapeNode+Utility.swift */,
 				790A01DD1D81AD7800275B8B /* Range+Utility.swift */,
 				79B1ED1C1D82AF820061C707 /* CpuControlComponent.swift */,
+				79B1ED1E1D82EE000061C707 /* Block.swift */,
 			);
 			path = Pong;
 			sourceTree = "<group>";
@@ -171,6 +174,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				79C5F1481D798AFC0075689A /* SKShapeNode+Utility.swift in Sources */,
+				79B1ED1F1D82EE000061C707 /* Block.swift in Sources */,
 				795F77D81D72B84D00CCF863 /* GameScene.swift in Sources */,
 				795F77E91D72B8C800CCF863 /* Paddle.swift in Sources */,
 				79C5F1441D7949980075689A /* Beam.swift in Sources */,

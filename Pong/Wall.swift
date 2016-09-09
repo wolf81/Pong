@@ -26,10 +26,11 @@ class Wall : Entity {
         vc.sprite.zPosition = EntityLayer.Wall.rawValue
         addComponent(vc)
         
-        vc.sprite.physicsBody = SKPhysicsBody(texture: sprite.texture!, size: sprite.size)
-        vc.sprite.physicsBody?.affectedByGravity = false
-        vc.sprite.physicsBody?.categoryBitMask = EntityCategory.Wall
-        vc.sprite.physicsBody?.contactTestBitMask = EntityCategory.Nothing
-        vc.sprite.physicsBody?.collisionBitMask = EntityCategory.Nothing
+        let pBody = SKPhysicsBody(texture: sprite.texture!, size: sprite.size)
+        pBody.affectedByGravity = false
+        pBody.categoryBitMask = EntityCategory.Wall
+        pBody.contactTestBitMask = EntityCategory.Nothing
+        pBody.collisionBitMask = EntityCategory.Nothing
+        vc.sprite.physicsBody = pBody
     }
 }

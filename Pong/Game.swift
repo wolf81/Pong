@@ -24,6 +24,7 @@ class Game : NSObject {
     private var bottomWall: Wall!
     
     private var beams = [Beam]()
+    private var blocks = [Block]()
     
     private(set) var gameScene: GameScene?
     
@@ -42,7 +43,7 @@ class Game : NSObject {
         
         gameScene.backgroundColor = SKColor.lightGrayColor()
         
-        redPaddle = Paddle(forPlayer: .Red, withControl: .Cpu, position: CGPoint(x: offset, y: y), color: SKColor.redColor())
+        redPaddle = Paddle(forPlayer: .Red, withControl: .Human, position: CGPoint(x: offset, y: y), color: SKColor.redColor())
         bluePaddle = Paddle(forPlayer: .Blue, withControl: .Cpu, position: CGPoint(x: gameScene.frame.width - offset, y: y), color: SKColor.blueColor())
         
         let size = CGSize(width: gameScene.frame.width + 10, height: 4.0)
@@ -54,7 +55,19 @@ class Game : NSObject {
         
         gameScene.physicsWorld.contactDelegate = self
         
-        for entity in [redPaddle, bluePaddle, topWall, bottomWall] {
+        let maxX = Int(gameScene.frame.size.width) - 400
+        let maxY = Int(gameScene.frame.size.height) - 200
+        for i in 0 ..< 3 {
+            let x = GKRandomSource.sharedRandom().nextIntWithUpperBound(maxX) + 200
+            let y = GKRandomSource.sharedRandom().nextIntWithUpperBound(maxY) + 100
+            
+            let pos = CGPoint(x: x, y: y)
+            let block = Block(position: pos, color: SKColor.orangeColor())
+            blocks.append(block)
+        }
+        
+        let entities: [Entity] = blocks + [redPaddle, bluePaddle, topWall, bottomWall]
+        for entity in entities {
             if let vc = entity.componentForClass(VisualComponent) {
                 gameScene.addChild(vc.sprite)
             }
@@ -245,6 +258,19 @@ class Game : NSObject {
         ball.velocity = CGVector(dx: velocity.dx, dy: -velocity.dy)
     }
     
+    private func handleContactBetweenBall(ball: Ball, andBlock block: Block) {
+        let velocity = ball.velocity
+
+        let xOffset = abs(ball.position.x - block.position.x)
+        let yOffset = abs(ball.position.y - block.position.y)
+        
+        if xOffset > yOffset {
+            ball.velocity = CGVector(dx: -velocity.dx, dy: velocity.dy)
+        } else {
+            ball.velocity = CGVector(dx: velocity.dx, dy: -velocity.dy)
+        }        
+    }
+    
     private func handleContactBetweenPaddle(paddle: Paddle, andBeam beam: Beam) {
         guard
             let gameScene = self.gameScene,
@@ -328,6 +354,10 @@ extension Game : SKPhysicsContactDelegate {
             handleContactBetweenBall(entity1 as! Ball, andWall: entity2 as! Wall)
         case (is Wall, is Ball):
             handleContactBetweenBall(entity2 as! Ball, andWall: entity1 as! Wall)
+        case (is Ball, is Block):
+            handleContactBetweenBall(entity1 as! Ball, andBlock: entity2 as! Block)
+        case (is Block, is Ball):
+            handleContactBetweenBall(entity2 as! Ball, andBlock: entity1 as! Block)
         case (is Ball, is Paddle):
             handleContactBetweenBall(entity2 as! Ball, andPaddle: entity1 as! Paddle)
         case (is Paddle, is Ball):
