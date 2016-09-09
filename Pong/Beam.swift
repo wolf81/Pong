@@ -12,7 +12,7 @@ class Beam : Entity {
     init(position: CGPoint, color: SKColor) {
         super.init()
         
-        let rect = CGRect(x: 0, y: 0, width: 0, height: Constants.beamHeight)
+        let rect = CGRect(x: 0, y: 0, width: 100, height: Constants.beamHeight)
         let path = CGPathCreateWithRect(rect, nil)
         let shape = SKShapeNode(path: path, centered: true)
         shape.fillColor = color
@@ -21,10 +21,17 @@ class Beam : Entity {
         let sprite = SpriteNode(texture: shape.texture)
         sprite.entity = self        
         sprite.position = position
-        sprite.anchorPoint = CGPoint(x: 0, y: 0.5)
         
         let vc = VisualComponent(sprite: sprite)
         vc.sprite.zPosition = EntityLayer.Beam.rawValue
+        
+        let pBody = SKPhysicsBody(rectangleOfSize: sprite.size)
+        pBody.categoryBitMask = EntityCategory.Beam
+        pBody.collisionBitMask = EntityCategory.Nothing
+        pBody.contactTestBitMask = EntityCategory.Paddle
+        pBody.usesPreciseCollisionDetection = true
+        vc.sprite.physicsBody = pBody
+        
         addComponent(vc)
     }
 }

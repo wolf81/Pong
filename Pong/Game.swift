@@ -21,8 +21,7 @@ class Game : NSObject {
     private var topWall: Wall!
     private var bottomWall: Wall!
     
-    private var redBeam: Beam?
-    private var blueBeam: Beam?
+    private var beams = [Beam]()
     
     private(set) var gameScene: GameScene?
     
@@ -87,30 +86,15 @@ class Game : NSObject {
         
         let paddle = (player == .Red) ? redPaddle : bluePaddle
         
-        let origin = CGPoint(x: paddle.position.x + 5, y: paddle.position.y)
+        let origin = CGPoint(x: paddle.position.x + 80, y: paddle.position.y)
         
         let beam = Beam(position: origin, color: SKColor.purpleColor())
-        
-        switch player {
-        case .Red:
-            self.redBeam = beam
-        case .Blue:
-            self.blueBeam = beam
-        }
+        beams.append(beam)
         
         if let vc = beam.componentForClass(VisualComponent) {
             gameScene.addChild(vc.sprite)
             
-            let width = CGRectGetWidth(gameScene.frame)
-            let resize = SKAction.scaleXTo(width, duration: 0.7)
-            vc.sprite.runAction(resize, completion: {
-                vc.sprite.removeFromParent()
-                
-                switch player {
-                case .Red: self.redBeam = nil
-                case .Blue: self.blueBeam = nil
-                }
-            })
+            vc.sprite.physicsBody?.velocity = CGVector(dx: Constants.beamSpeed, dy: 0)
         }
     }
     
@@ -195,7 +179,7 @@ class Game : NSObject {
                 movePaddle(Direction.None, forPlayer: .Blue)
             }
         }
-
+        
         guard
             let vc_topWall = topWall.componentForClass(VisualComponent),
             let vc_bottomWall = bottomWall.componentForClass(VisualComponent) else {
@@ -221,29 +205,15 @@ class Game : NSObject {
             }
         }
         
-        let beams = [redBeam, blueBeam].flatMap { $0 }
-        for beam in beams {
-            if let beamVc = beam.componentForClass(VisualComponent),
-                let redPaddleVc = redPaddle.componentForClass(VisualComponent),
-                let bluePaddleVc = bluePaddle.componentForClass(VisualComponent) {
-                let paddleFrame = beam == redBeam ? bluePaddleVc.sprite.frame : redPaddleVc.sprite.frame
-                if CGRectIntersectsRect(beamVc.sprite.frame, paddleFrame) {
-                    var origin = CGPoint(x: 0, y: beamVc.sprite.position.y - Constants.paddleHeight / 2)
-                    
-                    if beam == redBeam {
-                        var origin = bluePaddleVc.sprite.convertPoint(beamVc.sprite.position, fromNode: gameScene)
-                        origin.y += Constants.paddleHeight / 2
-                        origin.y = Constants.paddleHeight - origin.y
-                        bluePaddle.addHole(origin.y, height: Constants.beamHeight)
-                    } else {
-                        origin = gameScene.convertPoint(origin, toNode: bluePaddleVc.sprite)
-                        redPaddle.addHole(origin.y, height: Constants.beamHeight)
-                    }
+        var beams = [Beam]()
+        for beam in self.beams {
+            if let vc = beam.componentForClass(VisualComponent) {
+                if vc.sprite.parent != nil {
+                    beams.append(beam)
                 }
             }
         }
-        
-        gameScene.didSimulatePhysics()
+        self.beams = beams
     }
 
     private func handleContactBetweenBall(ball: Ball, andPaddle paddle: Paddle) {
@@ -288,6 +258,20 @@ class Game : NSObject {
     private func handleContactBetweenBall(ball: Ball, andWall wall: Wall) {
         let velocity = ball.velocity
         ball.velocity = CGVector(dx: velocity.dx, dy: -velocity.dy)
+    }
+    
+    private func handleContactBetweenPaddle(paddle: Paddle, andBeam beam: Beam) {
+        guard
+            let gameScene = self.gameScene,
+            let beamVc = beam.componentForClass(VisualComponent),
+            let paddleVc = paddle.componentForClass(VisualComponent) else {
+            return
+        }
+        
+        var origin = paddleVc.sprite.convertPoint(beamVc.sprite.position, fromNode: gameScene)
+        origin.y += Constants.paddleHeight / 2
+        origin.y = Constants.paddleHeight - origin.y
+        paddle.addHole(origin.y, height: Constants.beamHeight)
     }
     
     private func handleContactBetweenPaddle(paddle: Paddle, andWall wall: Wall) {
@@ -351,6 +335,10 @@ extension Game : SKPhysicsContactDelegate {
             handleContactBetweenPaddle(entity1 as! Paddle, andWall: entity2 as! Wall)
         case (is Wall, is Paddle):
             handleContactBetweenPaddle(entity2 as! Paddle, andWall: entity1 as! Wall)
+        case (is Paddle, is Beam):
+            handleContactBetweenPaddle(entity1 as! Paddle, andBeam: entity2 as! Beam)
+        case (is Beam, is Paddle):
+            handleContactBetweenPaddle(entity2 as! Paddle, andBeam: entity1 as! Beam)
         case (is Ball, is Wall):
             handleContactBetweenBall(entity1 as! Ball, andWall: entity2 as! Wall)
         case (is Wall, is Ball):

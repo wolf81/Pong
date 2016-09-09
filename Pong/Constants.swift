@@ -31,7 +31,9 @@ struct Constants {
     
     static let paddleSpeed: Float = 380
     static let ballSpeed: Float = 650
+    
     static let beamHeight: CGFloat = 50
+    static let beamSpeed: CGFloat = 1200
 }
 
 enum Direction: Int {
