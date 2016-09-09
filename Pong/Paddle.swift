@@ -13,11 +13,16 @@ class Paddle : Entity {
     
 //    private var holeRanges = [Range<Int>]()
     
-    init(position: CGPoint, color: SKColor) {
+    init(control: Control, position: CGPoint, color: SKColor) {
         super.init()
         
         for _ in 0 ..< Int(Constants.paddleHeight) {
             paddleRepr.append(1)
+        }
+        
+        if control == .Cpu {
+            let controlComponent = CpuControlComponent(paddle: self)
+            addComponent(controlComponent)
         }
         
         self.speed = Constants.paddleSpeed

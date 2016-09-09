@@ -47,6 +47,11 @@ enum Player {
     case Blue
 }
 
+enum Control {
+    case Human
+    case Cpu
+}
+
 enum Action: Int {
     case None
     case Up

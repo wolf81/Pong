@@ -12,6 +12,8 @@ import GameplayKit
 class Game : NSObject {
     static let sharedInstance = Game()
     
+    let cpuControlSystem = GKComponentSystem(componentClass: CpuControlComponent.self)
+    
     let randomAngle = GKRandomDistribution(lowestValue: 45, highestValue: 135)
     
     private var nextPlayer: Player = .Red
@@ -26,7 +28,7 @@ class Game : NSObject {
     private(set) var gameScene: GameScene?
     
     private var ball: Ball?
-    private var invisBall: Ball?
+    private(set) var invisBall: Ball?
     
     override private init() {
         // Hide initializer, for this is a singleton.
@@ -40,8 +42,8 @@ class Game : NSObject {
         
         gameScene.backgroundColor = SKColor.lightGrayColor()
         
-        redPaddle = Paddle(position: CGPoint(x: offset, y: y), color: SKColor.redColor())
-        bluePaddle = Paddle(position: CGPoint(x: gameScene.frame.width - offset, y: y), color: SKColor.blueColor())
+        redPaddle = Paddle(control: .Human, position: CGPoint(x: offset, y: y), color: SKColor.redColor())
+        bluePaddle = Paddle(control: .Cpu, position: CGPoint(x: gameScene.frame.width - offset, y: y), color: SKColor.blueColor())
         
         let size = CGSize(width: gameScene.frame.width + 10, height: 4.0)
         let topY = gameScene.frame.height - size.height - 60
@@ -57,13 +59,14 @@ class Game : NSObject {
                 gameScene.addChild(vc.sprite)
             }
         }
+        
+        let paddles = [redPaddle, bluePaddle].flatMap{ $0 }
+        for paddle in paddles {
+            cpuControlSystem.addComponentWithEntity(paddle)
+        }
     }
 
     func movePaddle(direction: Direction, forPlayer player: Player) {
-        if player == .Blue {
-            return
-        }
-
         let paddle = (player == .Red) ? redPaddle : bluePaddle
         
         let dy: CGFloat = CGFloat(paddle.speed)
@@ -103,6 +106,8 @@ class Game : NSObject {
         guard let gameScene = self.gameScene else {
             return
         }
+        
+        cpuControlSystem.updateWithDeltaTime(deltaTime)
         
         if let ball = self.invisBall, let vc_ball = ball.componentForClass(VisualComponent) {
             let origin = vc_ball.sprite.position
@@ -159,27 +164,7 @@ class Game : NSObject {
             self.ball = spawnBall(forScene: gameScene, position: position, angle: angle, speed: Constants.ballSpeed)
             self.invisBall = spawnBall(forScene: gameScene, position: position, angle: angle, speed: Constants.ballSpeed + 50, canHitPaddle: false)
         }
-        
-        if let ball = self.invisBall, let cpuPaddle = self.bluePaddle {
-            let range = cpuPaddle.position.y - 40 ... cpuPaddle.position.y + 40
-            
-            if range.contains(ball.position.y) == false {
-                if cpuPaddle.position.y > ball.position.y {
-                    if cpuPaddle.velocity.dy >= 0 {
-                        movePaddle(Direction.Down, forPlayer: .Blue)
-                    }
-                } else if cpuPaddle.position.y < ball.position.y {
-                    if cpuPaddle.velocity.dy <= 0 {
-                        movePaddle(Direction.Up, forPlayer: .Blue)
-                    }
-                } else {
-                    movePaddle(Direction.None, forPlayer: .Blue)
-                }
-            } else {            
-                movePaddle(Direction.None, forPlayer: .Blue)
-            }
-        }
-        
+                
         guard
             let vc_topWall = topWall.componentForClass(VisualComponent),
             let vc_bottomWall = bottomWall.componentForClass(VisualComponent) else {
