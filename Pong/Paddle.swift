@@ -9,10 +9,16 @@
 import SpriteKit
 
 class Paddle : Entity {
-    private var paddleRanges = [Range<Int>]()
+    var paddleRepr = [Int]()
+    
+//    private var holeRanges = [Range<Int>]()
     
     init(position: CGPoint, color: SKColor) {
         super.init()
+        
+        for _ in 0 ..< Int(Constants.paddleHeight) {
+            paddleRepr.append(1)
+        }
         
         self.speed = Constants.paddleSpeed
         
@@ -34,7 +40,7 @@ class Paddle : Entity {
     
     func addHole(y: CGFloat, height: CGFloat) {
         let y = Constants.paddleHeight - y
-
+        
         // STEP 1: Create hole ranges
         //          => hole range intersects existing hole range:
         //              - y: create union
@@ -46,42 +52,43 @@ class Paddle : Entity {
         let hole_y1 = fmin(fmax(y - height / 2, 0), Constants.paddleHeight)
         let hole_y2 = fmax(fmin(y + height / 2, Constants.paddleHeight), 0)
 
-        var ranges = [Range<Int>]()
-        for range in paddleRanges {
-            if range.contains(Int(hole_y1)) {
-                return
-            } else if range.contains(Int(hole_y2)) {
-                return
-            } else {
-                ranges.append(range)
+        for i in Int(hole_y1) ..< Int(hole_y2) {
+            paddleRepr[i] = 0
+        }
+        
+        var paddleRanges = [Range<Int>]()
+        
+        var y1 = 0
+        var y2 = 0
+        var buildPaddleRect = paddleRepr[0] == 1
+        for (idx, i) in paddleRepr.enumerate() {
+            switch i {
+            case 0:
+                if buildPaddleRect {
+                    buildPaddleRect = false
+                    y2 = idx
+                    paddleRanges.append(y1 ..< y2)
+                }
+            default:
+                if !buildPaddleRect {
+                    buildPaddleRect = true
+                    y1 = idx
+                }
             }
         }
         
-        paddleRanges = ranges
-        print("paddleRanges: \(paddleRanges)")
-        
-//        paddleRanges.removeAll()
-        
-        if hole_y1 == 0 {
-            paddleRanges.append(Int(hole_y2) ..< Int(Constants.paddleHeight))
-        } else if hole_y2 == Constants.paddleHeight {
-            paddleRanges.append(Int(0) ... Int(hole_y1))
-        } else {
-            paddleRanges.append(Int(0) ... Int(hole_y1))
-            paddleRanges.append(Int(hole_y2) ..< Int(Constants.paddleHeight))
-        }
-
-        print("\n")
-        for range in paddleRanges {
-            print("range: \(range)")
+        if paddleRepr[paddleRepr.count - 1] == 1 {
+            paddleRanges.append(y1 ..< paddleRepr.count)
         }
         
         var paddleRects = [CGRect]()
         
+        let w = Int(Constants.paddleWidth)
+        let h = Int(Constants.paddleHeight)
         for range in paddleRanges {
             let h1 = range.endIndex - range.startIndex
-            let y1 = range.startIndex + h1 / 2 - (Int(Constants.paddleHeight) / 2)
-            let rect = CGRect(x: 0, y: y1, width: Int(Constants.paddleWidth), height: h1)
+            let y1 = range.startIndex + h1 / 2 - (h / 2)
+            let rect = CGRect(x: 0, y: y1, width: w, height: h1)
             paddleRects.append(rect)
         }
         
