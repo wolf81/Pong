@@ -8,8 +8,8 @@
 
 import SpriteKit
 
-class Ball : Entity {    
-    init(position: CGPoint, velocity: CGVector, canHitPaddle: Bool = true) {
+class Ball : Entity {
+    init(position: CGPoint, velocity: CGVector) {
         super.init()
         
         self.speed = Constants.ballSpeed
@@ -21,9 +21,6 @@ class Ball : Entity {
         let shape = SKShapeNode(path: path, centered: true)
         shape.fillColor = SKColor.whiteColor()
         shape.strokeColor = SKColor.whiteColor()
-        if canHitPaddle == false {
-            shape.alpha = 0.15
-        }
 
         let sprite = SpriteNode(texture: shape.texture)
         sprite.entity = self
@@ -39,12 +36,8 @@ class Ball : Entity {
         pBody.usesPreciseCollisionDetection = true
         pBody.restitution = 0
         pBody.friction = 0
-        pBody.contactTestBitMask = EntityCategory.Wall | EntityCategory.Block
-        
-        if canHitPaddle {
-            pBody.contactTestBitMask |= EntityCategory.Paddle
-        }
-        
+        pBody.contactTestBitMask = EntityCategory.Wall | EntityCategory.Block | EntityCategory.Paddle
+                
         vc.sprite.physicsBody = pBody
     }
 }

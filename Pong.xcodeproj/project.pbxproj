@@ -24,6 +24,7 @@
 		79B1ED1D1D82AF820061C707 /* CpuControlComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B1ED1C1D82AF820061C707 /* CpuControlComponent.swift */; };
 		79B1ED1F1D82EE000061C707 /* Block.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B1ED1E1D82EE000061C707 /* Block.swift */; };
 		79B1ED211D83D5DD0061C707 /* Array+Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B1ED201D83D5DD0061C707 /* Array+Utility.swift */; };
+		79B1ED231D83F0DA0061C707 /* TracerBall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B1ED221D83F0DA0061C707 /* TracerBall.swift */; };
 		79C5F1441D7949980075689A /* Beam.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C5F1431D7949980075689A /* Beam.swift */; };
 		79C5F1481D798AFC0075689A /* SKShapeNode+Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C5F1471D798AFC0075689A /* SKShapeNode+Utility.swift */; };
 /* End PBXBuildFile section */
@@ -48,6 +49,7 @@
 		79B1ED1C1D82AF820061C707 /* CpuControlComponent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CpuControlComponent.swift; sourceTree = "<group>"; };
 		79B1ED1E1D82EE000061C707 /* Block.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Block.swift; sourceTree = "<group>"; };
 		79B1ED201D83D5DD0061C707 /* Array+Utility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Array+Utility.swift"; sourceTree = "<group>"; };
+		79B1ED221D83F0DA0061C707 /* TracerBall.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TracerBall.swift; sourceTree = "<group>"; };
 		79C5F1431D7949980075689A /* Beam.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Beam.swift; sourceTree = "<group>"; };
 		79C5F1471D798AFC0075689A /* SKShapeNode+Utility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "SKShapeNode+Utility.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -102,6 +104,7 @@
 				79B1ED1C1D82AF820061C707 /* CpuControlComponent.swift */,
 				79B1ED1E1D82EE000061C707 /* Block.swift */,
 				79B1ED201D83D5DD0061C707 /* Array+Utility.swift */,
+				79B1ED221D83F0DA0061C707 /* TracerBall.swift */,
 			);
 			path = Pong;
 			sourceTree = "<group>";
@@ -183,6 +186,7 @@
 				79C5F1441D7949980075689A /* Beam.swift in Sources */,
 				795F77F11D72BF8700CCF863 /* Constants.swift in Sources */,
 				795F77EF1D72BA1600CCF863 /* Game.swift in Sources */,
+				79B1ED231D83F0DA0061C707 /* TracerBall.swift in Sources */,
 				795F77EB1D72B8D900CCF863 /* Ball.swift in Sources */,
 				795F77F31D72C2FA00CCF863 /* SpriteNode.swift in Sources */,
 				795F77ED1D72B91E00CCF863 /* VisualComponent.swift in Sources */,

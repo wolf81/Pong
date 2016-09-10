@@ -17,7 +17,7 @@ class CpuControlComponent : GKComponent {
     
     override func updateWithDeltaTime(seconds: NSTimeInterval) {
         guard
-            let ball = Game.sharedInstance.invisBall,
+            let ball = Game.sharedInstance.tracerBalls.first,
             let cpuPaddle = self.paddle else {
                 return
         }

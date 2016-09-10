@@ -24,11 +24,10 @@ class Game : NSObject {
     private var beams = [Beam]()
     private var blocks = [Block]()
     private var walls = [Wall]()
+    private var balls = [Ball]()
+    private(set) var tracerBalls = [TracerBall]()
     
     private(set) var gameScene: GameScene?
-    
-    private var ball: Ball?
-    private(set) var invisBall: Ball?
     
     private var entitiesToRemove = [Entity]()
     private var entitiesToAdd = [Entity]()
@@ -60,6 +59,7 @@ class Game : NSObject {
         let maxX = Int(gameScene.frame.size.width) - 400
         let maxY = Int(gameScene.frame.size.height) - 200
         
+        var blocks = [Block]()
         for i in 0 ..< 3 {
             let x = GKRandomSource.sharedRandom().nextIntWithUpperBound(maxX) + 200
             let y = GKRandomSource.sharedRandom().nextIntWithUpperBound(maxY) + 100
@@ -112,60 +112,44 @@ class Game : NSObject {
         
         cpuControlSystem.updateWithDeltaTime(deltaTime)
         
-        if let ball = self.invisBall, let vc_ball = ball.componentForClass(VisualComponent) {
-            let origin = vc_ball.sprite.position
-            let dx = deltaTime * Double(ball.velocity.dx)
-            let dy = deltaTime * Double(ball.velocity.dy)
-
-            var x = Double(origin.x)
-            
-            if CGFloat(x) > CGRectGetMaxX(gameScene.frame) || x < 0 {
-                ball.velocity = CGVector.zero
-            } else {
-                x = x + dx
+        let balls: [Ball] = self.balls + tracerBalls
+        for ball in balls {
+            if let vc_ball = ball.componentForClass(VisualComponent) {
+                let origin = vc_ball.sprite.position
+                let dx = deltaTime * Double(ball.velocity.dx)
+                let dy = deltaTime * Double(ball.velocity.dy)
+                vc_ball.sprite.position = CGPoint(x: origin.x + CGFloat(dx), y: origin.y + CGFloat(dy))
+                
+                let ballFrame = vc_ball.sprite.frame
+                
+                if (CGRectGetMinX(ballFrame) > CGRectGetMaxX(gameScene.frame) ||
+                    CGRectGetMaxX(ballFrame) < CGRectGetMinX(gameScene.frame)) {
+                    
+                    entitiesToRemove.append(ball)
+                }
             }
-            
-            vc_ball.sprite.position = CGPoint(x: CGFloat(x), y: origin.y + CGFloat(dy))
         }
         
-        if let ball = self.ball, let vc_ball = ball.componentForClass(VisualComponent) {
-            let origin = vc_ball.sprite.position
-            let dx = deltaTime * Double(ball.velocity.dx)
-            let dy = deltaTime * Double(ball.velocity.dy)
-            vc_ball.sprite.position = CGPoint(x: origin.x + CGFloat(dx), y: origin.y + CGFloat(dy))
-
-            let ballFrame = vc_ball.sprite.frame
-            
-            if (CGRectGetMinX(ballFrame) > CGRectGetMaxX(gameScene.frame) ||
-                CGRectGetMaxX(ballFrame) < CGRectGetMinX(gameScene.frame)) {
-
-                if destroyBall(ball) {
-                    self.ball = nil
-                }
-                
-                if let invisBall = self.invisBall {
-                    if destroyBall(invisBall) {
-                        self.invisBall = nil
-                    }
-                }
-            }
-        } else {
-            let y: CGFloat = gameScene.frame.height / 2            
+        if balls.count == 0 {
+            let y: CGFloat = gameScene.frame.height / 2
             
             switch nextPlayer {
             case .Red: nextPlayer = .Blue
             case .Blue: nextPlayer = .Red
             }
-
+            
             let position = CGPoint(x: gameScene.frame.width / 2, y: y)
-
+            
             var angle = GLKMathDegreesToRadians(Float(randomAngle.nextInt()))
             if nextPlayer == .Red {
                 angle += Float(M_PI)
             }
             
-            self.ball = spawnBall(forScene: gameScene, position: position, angle: angle, speed: Constants.ballSpeed)
-            self.invisBall = spawnBall(forScene: gameScene, position: position, angle: angle, speed: Constants.ballSpeed + 50, canHitPaddle: false)
+            let ball = spawnBall(position, angle: angle, speed: Constants.ballSpeed)
+            entitiesToAdd.append(ball)
+            
+            let tracerBall = spawnTracerBall(forBall: ball, angle: angle, speed: Constants.ballSpeed + 50)
+            entitiesToAdd.append(tracerBall)
         }
 
         for paddle in [redPaddle, bluePaddle] {
@@ -186,13 +170,16 @@ class Game : NSObject {
         }
         
         for entity in entitiesToRemove {
+            if let vc = entity.componentForClass(VisualComponent) {
+                vc.sprite.removeFromParent()
+            }
+
             switch entity {
-            case is Block:
-                if let vc = entity.componentForClass(VisualComponent) {
-                    vc.sprite.removeFromParent()
-                }
-                
-                blocks.remove(entity as! Block)
+            case is Block: blocks.remove(entity as! Block)
+            case is TracerBall: tracerBalls.remove(entity as! TracerBall)
+            case is Ball: balls.remove(entity as! Ball)
+            case is Beam: beams.remove(entity as! Beam)
+            case is Wall: walls.remove(entity as! Wall)
             default: break
             }
             entitiesToRemove.removeAll()
@@ -203,10 +190,14 @@ class Game : NSObject {
             case is Block: blocks.append(entity as! Block)
             case is Wall: walls.append(entity as! Wall)
             case is Beam: beams.append(entity as! Beam)
+            case is TracerBall: tracerBalls.append(entity as! TracerBall)
+            case is Ball: balls.append(entity as! Ball)
             default: break
             }
             
             if let vc = entity.componentForClass(VisualComponent) {
+                assert(vc.sprite.parent == nil, "entity should not have parent: \(entity)")
+                
                 gameScene.addChild(vc.sprite)
             }
 
@@ -217,10 +208,6 @@ class Game : NSObject {
     }
     
     private func handleContactBetweenBall(ball: Ball, andPaddle paddle: Paddle) {
-        guard let scene = self.gameScene else {
-            return
-        }
-
         var speed = ball.speed
         
         let offset = ball.position.y + (Constants.paddleHeight / 2) - paddle.position.y
@@ -247,12 +234,9 @@ class Game : NSObject {
         }
         
         updateBall(ball, angle: Float(angle), speed: speed)
-        
-        if let invisBall = self.invisBall where destroyBall(invisBall) == true {
-            self.invisBall = nil
-        }
-        
-        self.invisBall = spawnBall(forScene: scene, position: ball.position, angle: Float(angle), speed: speed + 50, canHitPaddle: false)
+
+        let ball = spawnTracerBall(forBall: ball, angle: Float(angle), speed: speed + 50)
+        entitiesToAdd.append(ball)
     }
     
     private func handleContactBetweenBall(ball: Ball, andWall wall: Wall) {
@@ -272,7 +256,7 @@ class Game : NSObject {
             ball.velocity = CGVector(dx: velocity.dx, dy: -velocity.dy)
         }
 
-        if ball != invisBall {
+        if !(ball is TracerBall) {
             switch block.power {
             case .Repair:
                 bluePaddle.repair()
@@ -311,31 +295,27 @@ class Game : NSObject {
         ball.velocity = velocity
     }
     
-    private func spawnBall(forScene scene: SKScene, position: CGPoint, angle: Float, speed: Float, canHitPaddle: Bool = true) -> Ball {
+    private func spawnBall(position: CGPoint, angle: Float, speed: Float) -> Ball {
         var ball: Ball
         
         let dy = cos(angle) * speed
         let dx = sin(angle) * speed
         let velocity = CGVector(dx: CGFloat(dx), dy: CGFloat(dy))
-        
-        ball = Ball(position: position, velocity: velocity, canHitPaddle: canHitPaddle)
-        
-        if let vc = ball.componentForClass(VisualComponent) {
-            scene.addChild(vc.sprite)
-        }
+        ball = Ball(position: position, velocity: velocity)
         
         return ball
     }
     
-    private func destroyBall(ball: Ball) -> Bool {
-        var success = false
+    private func spawnTracerBall(forBall ball: Ball, angle: Float, speed: Float) -> TracerBall {
+        var tracerBall: TracerBall
         
-        if let vc = ball.componentForClass(VisualComponent) {
-            vc.sprite.removeFromParent()
-            success = true
-        }
+        let dy = cos(angle) * speed
+        let dx = sin(angle) * speed
+        let velocity = CGVector(dx: CGFloat(dx), dy: CGFloat(dy))
         
-        return success
+        tracerBall = TracerBall(forBall: ball, position: ball.position, velocity: velocity)
+        
+        return tracerBall
     }
 }
 
