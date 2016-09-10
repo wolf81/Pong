@@ -20,11 +20,10 @@ class Game : NSObject {
     
     private var redPaddle: Paddle!
     private var bluePaddle: Paddle!
-    private var topWall: Wall!
-    private var bottomWall: Wall!
     
     private var beams = [Beam]()
     private var blocks = [Block]()
+    private var walls = [Wall]()
     
     private(set) var gameScene: GameScene?
     
@@ -49,17 +48,18 @@ class Game : NSObject {
         redPaddle = Paddle(forPlayer: .Red, withControl: .Human, position: CGPoint(x: offset, y: y), color: SKColor.redColor())
         bluePaddle = Paddle(forPlayer: .Blue, withControl: .Cpu, position: CGPoint(x: gameScene.frame.width - offset, y: y), color: SKColor.blueColor())
         
-        let size = CGSize(width: gameScene.frame.width + 10, height: 4.0)
+        let size = CGSize(width: gameScene.frame.width + 20, height: 4.0)
         let topY = gameScene.frame.height - size.height - 60
         
         let x = CGRectGetMidX(gameScene.frame)
-        topWall = Wall(position: CGPoint(x: x, y: topY), size: size, color: SKColor.purpleColor())
-        bottomWall = Wall(position: CGPoint(x: x, y: size.height), size: size, color: SKColor.purpleColor())
+        let topWall = Wall(position: CGPoint(x: x, y: topY), size: size, color: SKColor.purpleColor())
+        let bottomWall = Wall(position: CGPoint(x: x, y: size.height), size: size, color: SKColor.purpleColor())
         
         gameScene.physicsWorld.contactDelegate = self
         
         let maxX = Int(gameScene.frame.size.width) - 400
         let maxY = Int(gameScene.frame.size.height) - 200
+        
         for i in 0 ..< 3 {
             let x = GKRandomSource.sharedRandom().nextIntWithUpperBound(maxX) + 200
             let y = GKRandomSource.sharedRandom().nextIntWithUpperBound(maxY) + 100
@@ -70,16 +70,7 @@ class Game : NSObject {
         }
         
         let entities: [Entity] = blocks + [redPaddle, bluePaddle, topWall, bottomWall]
-        for entity in entities {
-            if let vc = entity.componentForClass(VisualComponent) {
-                gameScene.addChild(vc.sprite)
-            }
-        }
-        
-        let paddles = [redPaddle, bluePaddle].flatMap{ $0 }
-        for paddle in paddles {
-            cpuControlSystem.addComponentWithEntity(paddle)
-        }
+        entitiesToAdd.appendContentsOf(entities)
     }
 
     func movePaddle(direction: Direction, forPlayer player: Player) {
@@ -99,20 +90,14 @@ class Game : NSObject {
     }
     
     func fireBeam(forPlayer player: Player) {
-        guard let gameScene = self.gameScene else {
-            return
-        }
-        
         let paddle = (player == .Red) ? redPaddle : bluePaddle
         
         let origin = CGPoint(x: paddle.position.x + 80, y: paddle.position.y)
         
         let beam = Beam(position: origin, color: SKColor.purpleColor())
-        beams.append(beam)
+        entitiesToAdd.append(beam)
         
         if let vc = beam.componentForClass(VisualComponent) {
-            gameScene.addChild(vc.sprite)
-            
             vc.sprite.physicsBody?.velocity = CGVector(dx: Constants.beamSpeed, dy: 0)
         }
     }
@@ -123,22 +108,7 @@ class Game : NSObject {
             return
         }
         
-        for entity in entitiesToRemove {
-            print("remove: \(entity)")
-            switch entity {
-            case is Block:
-                if let vc = entity.componentForClass(VisualComponent) {
-                    vc.sprite.removeFromParent()
-                }
-
-                blocks.remove(entity as! Block)
-            default: break
-            }
-        }
-
-        for entity in entitiesToAdd {
-            print("add: \(entity)")
-        }
+        updateEntityLists()
         
         cpuControlSystem.updateWithDeltaTime(deltaTime)
         
@@ -197,43 +167,55 @@ class Game : NSObject {
             self.ball = spawnBall(forScene: gameScene, position: position, angle: angle, speed: Constants.ballSpeed)
             self.invisBall = spawnBall(forScene: gameScene, position: position, angle: angle, speed: Constants.ballSpeed + 50, canHitPaddle: false)
         }
-                
-        guard
-            let vc_topWall = topWall.componentForClass(VisualComponent),
-            let vc_bottomWall = bottomWall.componentForClass(VisualComponent) else {
-            return
-        }
-        
+
         for paddle in [redPaddle, bluePaddle] {
             guard let vc_paddle = paddle.componentForClass(VisualComponent) else {
                 continue
             }
             
-            if CGRectGetMaxY(vc_paddle.sprite.frame) >= CGRectGetMinY(vc_topWall.sprite.frame) &&
-                paddle.velocity.dy > 0 {
-                paddle.velocity = CGVector.zero
-            } else if CGRectGetMinY(vc_paddle.sprite.frame) <= CGRectGetMaxY(vc_bottomWall.sprite.frame) &&
-                paddle.velocity.dy < 0 {
-                paddle.velocity = CGVector.zero
-            } else {
-                let dy = deltaTime * Double(paddle.velocity.dy)
-                let origin = vc_paddle.sprite.position
-                let dx = 0
-                vc_paddle.sprite.position = CGPoint(x: origin.x + CGFloat(dx), y: origin.y + CGFloat(dy))
-            }
+            let dy = deltaTime * Double(paddle.velocity.dy)
+            let origin = vc_paddle.sprite.position
+            let dx = 0
+            vc_paddle.sprite.position = CGPoint(x: origin.x + CGFloat(dx), y: origin.y + CGFloat(dy))
         }
-        
-        var beams = [Beam]()
-        for beam in self.beams {
-            if let vc = beam.componentForClass(VisualComponent) {
-                if vc.sprite.parent != nil {
-                    beams.append(beam)
-                }
-            }
-        }
-        self.beams = beams
     }
 
+    private func updateEntityLists() {
+        guard let gameScene = self.gameScene else {
+            return
+        }
+        
+        for entity in entitiesToRemove {
+            switch entity {
+            case is Block:
+                if let vc = entity.componentForClass(VisualComponent) {
+                    vc.sprite.removeFromParent()
+                }
+                
+                blocks.remove(entity as! Block)
+            default: break
+            }
+            entitiesToRemove.removeAll()
+        }
+        
+        for entity in entitiesToAdd {
+            switch entity {
+            case is Block: blocks.append(entity as! Block)
+            case is Wall: walls.append(entity as! Wall)
+            case is Beam: beams.append(entity as! Beam)
+            default: break
+            }
+            
+            if let vc = entity.componentForClass(VisualComponent) {
+                gameScene.addChild(vc.sprite)
+            }
+
+            cpuControlSystem.addComponentWithEntity(entity)
+
+            entitiesToAdd.removeAll()
+        }
+    }
+    
     private func handleContactBetweenBall(ball: Ball, andPaddle paddle: Paddle) {
         guard let scene = self.gameScene else {
             return

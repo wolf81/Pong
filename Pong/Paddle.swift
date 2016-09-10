@@ -9,12 +9,14 @@
 import SpriteKit
 
 class Paddle : Entity {
-    var paddleRepr = [Int]()
+    private var paddleRepr = [Int]()
     
     private (set) var player: Player
+    private (set) var color: SKColor
     
     init(forPlayer player: Player, withControl control: Control, position: CGPoint, color: SKColor) {
         self.player = player
+        self.color = color
 
         super.init()
         
@@ -34,15 +36,14 @@ class Paddle : Entity {
         let sprite = SpriteNode(texture: shape.texture)
         sprite.entity = self
         sprite.position = position
+        sprite.zPosition = EntityLayer.Paddle.rawValue
+        
+        let pBody = SKPhysicsBody(rectangleOfSize: shape.frame.size)
+        configurePhysicsBody(pBody)
+        sprite.physicsBody = pBody
         
         let vc = VisualComponent(sprite: sprite)
-        vc.sprite.zPosition = EntityLayer.Paddle.rawValue
         addComponent(vc)
-        
-        vc.sprite.physicsBody = SKPhysicsBody(rectangleOfSize: shape.frame.size)
-        vc.sprite.physicsBody?.categoryBitMask = EntityCategory.Paddle
-        vc.sprite.physicsBody?.contactTestBitMask = EntityCategory.Wall
-        vc.sprite.physicsBody?.collisionBitMask = EntityCategory.Nothing
     }
     
     func repair() {
@@ -50,16 +51,11 @@ class Paddle : Entity {
             paddleRepr[i] = 1
         }
 
-        let color = SKColor.greenColor()
-        
         let shape = paddleShapeWithColor(color)
-        
         let sprite = SpriteNode(texture: shape.texture)
         
         let pBody = SKPhysicsBody(rectangleOfSize: shape.frame.size)
-        pBody.categoryBitMask = EntityCategory.Paddle
-        pBody.contactTestBitMask = EntityCategory.Wall
-        pBody.collisionBitMask = EntityCategory.Nothing
+        configurePhysicsBody(pBody)
         sprite.physicsBody = pBody
         
         if let vc = componentForClass(VisualComponent) {
@@ -137,7 +133,7 @@ class Paddle : Entity {
         
         var pBodies = [SKPhysicsBody]()
         for rect in paddleRects {
-            let shape = paddleShapeWithColor(SKColor.blueColor(), size: rect.size)
+            let shape = paddleShapeWithColor(color, size: rect.size)
             let sprite = SpriteNode(texture: shape.texture)
             sprite.zPosition = EntityLayer.PaddleFragment.rawValue
             sprite.position = rect.origin
@@ -149,11 +145,18 @@ class Paddle : Entity {
         }
         
         let pBody = SKPhysicsBody(bodies: pBodies)
-        pBody.collisionBitMask = EntityCategory.Nothing
-        pBody.contactTestBitMask = EntityCategory.Wall
-        pBody.categoryBitMask = EntityCategory.Paddle
+        configurePhysicsBody(pBody)
         
         vc.sprite.physicsBody = pBody
+    }
+    
+    private func configurePhysicsBody(physicsBody: SKPhysicsBody) {
+        physicsBody.collisionBitMask = EntityCategory.Wall
+        physicsBody.contactTestBitMask = EntityCategory.Wall
+        physicsBody.categoryBitMask = EntityCategory.Paddle
+        physicsBody.restitution = 0
+        physicsBody.friction = 0
+        physicsBody.allowsRotation = false
     }
 
     private func paddleShapeWithColor(color: SKColor, size: CGSize) -> SKShapeNode {
