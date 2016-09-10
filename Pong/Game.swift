@@ -31,6 +31,9 @@ class Game : NSObject {
     private var ball: Ball?
     private(set) var invisBall: Ball?
     
+    private var entitiesToRemove = [Entity]()
+    private var entitiesToAdd = [Entity]()
+    
     override private init() {
         // Hide initializer, for this is a singleton.
     }
@@ -62,7 +65,7 @@ class Game : NSObject {
             let y = GKRandomSource.sharedRandom().nextIntWithUpperBound(maxY) + 100
             
             let pos = CGPoint(x: x, y: y)
-            let block = Block(position: pos, color: SKColor.orangeColor())
+            let block = Block(power: .Repair, position: pos, color: SKColor.orangeColor())
             blocks.append(block)
         }
         
@@ -118,6 +121,23 @@ class Game : NSObject {
     func update(deltaTime: CFTimeInterval) {
         guard let gameScene = self.gameScene else {
             return
+        }
+        
+        for entity in entitiesToRemove {
+            print("remove: \(entity)")
+            switch entity {
+            case is Block:
+                if let vc = entity.componentForClass(VisualComponent) {
+                    vc.sprite.removeFromParent()
+                }
+
+                blocks.remove(entity as! Block)
+            default: break
+            }
+        }
+
+        for entity in entitiesToAdd {
+            print("add: \(entity)")
         }
         
         cpuControlSystem.updateWithDeltaTime(deltaTime)
@@ -268,7 +288,18 @@ class Game : NSObject {
             ball.velocity = CGVector(dx: -velocity.dx, dy: velocity.dy)
         } else {
             ball.velocity = CGVector(dx: velocity.dx, dy: -velocity.dy)
-        }        
+        }
+
+        if ball != invisBall {
+            switch block.power {
+            case .Repair:
+                bluePaddle.repair()
+            default:
+                break
+            }
+            
+            entitiesToRemove.append(block)
+        }
     }
     
     private func handleContactBetweenPaddle(paddle: Paddle, andBeam beam: Beam) {

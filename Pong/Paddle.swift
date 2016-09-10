@@ -45,6 +45,28 @@ class Paddle : Entity {
         vc.sprite.physicsBody?.collisionBitMask = EntityCategory.Nothing
     }
     
+    func repair() {
+        (0 ..< Int(Constants.paddleHeight)).forEach { i in
+            paddleRepr[i] = 1
+        }
+
+        let color = SKColor.greenColor()
+        
+        let shape = paddleShapeWithColor(color)
+        
+        let sprite = SpriteNode(texture: shape.texture)
+        
+        let pBody = SKPhysicsBody(rectangleOfSize: shape.frame.size)
+        pBody.categoryBitMask = EntityCategory.Paddle
+        pBody.contactTestBitMask = EntityCategory.Wall
+        pBody.collisionBitMask = EntityCategory.Nothing
+        sprite.physicsBody = pBody
+        
+        if let vc = componentForClass(VisualComponent) {
+            vc.replaceSprite(sprite)
+        }
+    }
+    
     func addHole(y: CGFloat, height: CGFloat) {
         let y = Constants.paddleHeight - y
         
@@ -62,7 +84,11 @@ class Paddle : Entity {
         for i in Int(hole_y1) ..< Int(hole_y2) {
             paddleRepr[i] = 0
         }
-        
+
+        updatePaddleSprite()
+    }
+    
+    private func updatePaddleSprite() {
         var paddleRanges = [Range<Int>]()
         
         var y1 = 0
@@ -87,7 +113,7 @@ class Paddle : Entity {
         if paddleRepr[paddleRepr.count - 1] == 1 {
             paddleRanges.append(y1 ..< paddleRepr.count)
         }
-        
+
         var paddleRects = [CGRect]()
         
         let w = Int(Constants.paddleWidth)
@@ -104,18 +130,18 @@ class Paddle : Entity {
         }
         
         vc.sprite.removeAllChildren()
-
+        
         let shape = paddleShapeWithColor(SKColor.clearColor())
         let sprite = SpriteNode(texture: shape.texture)
         vc.replaceSprite(sprite)
-
+        
         var pBodies = [SKPhysicsBody]()
         for rect in paddleRects {
             let shape = paddleShapeWithColor(SKColor.blueColor(), size: rect.size)
             let sprite = SpriteNode(texture: shape.texture)
             sprite.zPosition = EntityLayer.PaddleFragment.rawValue
             sprite.position = rect.origin
-
+            
             vc.sprite.addChild(sprite)
             
             let pBody = SKPhysicsBody(rectangleOfSize: shape.frame.size, center: rect.origin)
@@ -126,10 +152,10 @@ class Paddle : Entity {
         pBody.collisionBitMask = EntityCategory.Nothing
         pBody.contactTestBitMask = EntityCategory.Wall
         pBody.categoryBitMask = EntityCategory.Paddle
-
+        
         vc.sprite.physicsBody = pBody
     }
-    
+
     private func paddleShapeWithColor(color: SKColor, size: CGSize) -> SKShapeNode {
         var shape: SKShapeNode
         
@@ -141,7 +167,6 @@ class Paddle : Entity {
         
         return shape
     }
-
     
     private func paddleShapeWithColor(color: SKColor) -> SKShapeNode {
         let size = CGSize(width: Constants.paddleWidth, height: Constants.paddleHeight)

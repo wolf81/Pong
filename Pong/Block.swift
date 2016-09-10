@@ -8,8 +8,25 @@
 
 import SpriteKit
 
+/*
+ Blocks have power-ups:
+ - ImproveLaser
+ - Shield
+ - MultiBall
+ - Mines
+ - Heal
+ - SpeedUp (1 ball)
+ - SlowDown (1 ball)
+ 
+ P.S/: Balls can be 'owned' for power-ups
+ */
+
 class Block : Entity {
-    init(position: CGPoint, color: SKColor) {
+    var power: Power
+    
+    init(power: Power, position: CGPoint, color: SKColor) {
+        self.power = power
+        
         super.init()
         
         let l = 34

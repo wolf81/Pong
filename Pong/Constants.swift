@@ -61,3 +61,13 @@ enum Action: Int {
     case Action
     case Pause
 }
+
+enum Power {
+    case Laser
+    case Shield
+    case MultiBall
+    case Mines
+    case Repair
+    case SpeedUp
+    case SlowDown
+}
