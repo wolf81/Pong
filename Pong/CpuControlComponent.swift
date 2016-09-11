@@ -17,11 +17,34 @@ class CpuControlComponent : GKComponent {
     
     override func updateWithDeltaTime(seconds: NSTimeInterval) {
         guard
-            let ball = Game.sharedInstance.tracerBalls.first,
-            let cpuPaddle = self.paddle else {
+            let cpuPaddle = self.paddle where Game.sharedInstance.tracerBalls.count > 0 else {
                 return
         }
         
+        // find closest ball in direction of paddle
+        
+        let balls = Game.sharedInstance.tracerBalls.filter { tracerBall -> Bool in
+            if tracerBall.position.x < cpuPaddle.position.x {
+                return tracerBall.velocity.dx > 0
+            } else if tracerBall.position.x > cpuPaddle.position.x {
+                return tracerBall.velocity.dx < 0
+            } else {
+                return false
+            }
+        }.sort { (tracerBall1, tracerBall2) -> Bool in
+            if tracerBall1.position.x < cpuPaddle.position.x {
+                return tracerBall1.position.x > tracerBall2.position.x
+            } else if tracerBall1.position.x > cpuPaddle.position.x {
+                return tracerBall1.position.x < tracerBall2.position.x
+            } else {
+                return false
+            }
+        }
+
+        guard let ball = balls.first else {
+            return
+        }
+                
         let game = Game.sharedInstance
         
         let yOffset = Constants.paddleHeight / 5

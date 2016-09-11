@@ -237,15 +237,11 @@ class Game : NSObject {
         }
         
         if ball.dynamicType === Ball.self {
-            if block.didTrigger == true {
+            guard let player = ball.owner where block.didTrigger == false else {
                 return
             }
-            
+
             block.didTrigger = true
-            
-            guard let player = ball.owner else {
-                return
-            }
 
             if let paddle = paddleForPlayer(player) {
                 switch block.power {
