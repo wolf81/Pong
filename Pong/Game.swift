@@ -20,12 +20,11 @@ class Game : NSObject {
     
     private var nextPlayer: Player = .Red
     
-    private var redPaddle: Paddle!
-    private var bluePaddle: Paddle!
-    
+    private var paddles = [Paddle]()
     private var beams = [Beam]()
     private var walls = [Wall]()
     private var balls = [Ball]()
+    
     private(set) var tracerBalls = [TracerBall]()
     private(set) var blocks = [Block]()
     
@@ -49,8 +48,8 @@ class Game : NSObject {
         
         gameScene.backgroundColor = SKColor.lightGrayColor()
         
-        redPaddle = Paddle(forPlayer: .Red, withControl: .Human, position: CGPoint(x: offset, y: y), color: SKColor.redColor())
-        bluePaddle = Paddle(forPlayer: .Blue, withControl: .Cpu, position: CGPoint(x: gameScene.frame.width - offset, y: y), color: SKColor.blueColor())
+        let paddle_p1 = Paddle(forPlayer: .Red, withControl: .Human, position: CGPoint(x: offset, y: y), color: SKColor.redColor())
+        let paddle_p2 = Paddle(forPlayer: .Blue, withControl: .Cpu, position: CGPoint(x: gameScene.frame.width - offset, y: y), color: SKColor.blueColor())
         
         let size = CGSize(width: gameScene.frame.width + 20, height: 4.0)
         let topY = gameScene.frame.height - size.height - 60
@@ -61,14 +60,17 @@ class Game : NSObject {
         
         gameScene.physicsWorld.contactDelegate = self
         
-        let entities: [Entity] = [redPaddle, bluePaddle, topWall, bottomWall]
-        entitiesToAdd.appendContentsOf(entities)
+        for entity in [paddle_p1, paddle_p2, topWall, bottomWall] {
+            addEntity(entity)
+        }
 
         configureBlockSpawnerForScene(gameScene, xOffset: 250, yOffset: 100)
     }
 
     func movePaddle(direction: Direction, forPlayer player: Player) {
-        let paddle = (player == .Red) ? redPaddle : bluePaddle
+        guard let paddle = paddleForPlayer(player) else {
+            return
+        }
         
         let dy: CGFloat = CGFloat(paddle.speed)
 
@@ -84,16 +86,22 @@ class Game : NSObject {
     }
     
     func fireBeam(forPlayer player: Player) {
-        let paddle = (player == .Red) ? redPaddle : bluePaddle
+        guard let paddle = paddleForPlayer(player) else {
+            return
+        }
         
         let origin = CGPoint(x: paddle.position.x + 80, y: paddle.position.y)
         
         let beam = Beam(position: origin, color: SKColor.purpleColor())
-        entitiesToAdd.append(beam)
+        addEntity(beam)
         
         if let vc = beam.componentForClass(VisualComponent) {
             vc.sprite.physicsBody?.velocity = CGVector(dx: Constants.beamSpeed, dy: 0)
         }
+    }
+    
+    func removeEntity(entity: Entity) {
+        entitiesToRemove.append(entity)
     }
 
     func addEntity(entity: Entity) {
@@ -124,8 +132,7 @@ class Game : NSObject {
                 
                 if (CGRectGetMinX(ballFrame) > CGRectGetMaxX(gameScene.frame) ||
                     CGRectGetMaxX(ballFrame) < CGRectGetMinX(gameScene.frame)) {
-                    
-                    entitiesToRemove.append(ball)
+                    removeEntity(ball)
                 }
             }
         }
@@ -152,7 +159,7 @@ class Game : NSObject {
             entitiesToAdd.append(tracerBall)
         }
 
-        for paddle in [redPaddle, bluePaddle] {
+        for paddle in paddles {
             guard let vc_paddle = paddle.componentForClass(VisualComponent) else {
                 continue
             }
@@ -180,6 +187,7 @@ class Game : NSObject {
             case is Ball: balls.remove(entity as! Ball)
             case is Beam: beams.remove(entity as! Beam)
             case is Wall: walls.remove(entity as! Wall)
+            case is Paddle: paddles.remove(entity as! Paddle)
             default: break
             }
             entitiesToRemove.removeAll()
@@ -192,6 +200,7 @@ class Game : NSObject {
             case is Beam: beams.append(entity as! Beam)
             case is TracerBall: tracerBalls.append(entity as! TracerBall)
             case is Ball: balls.append(entity as! Ball)
+            case is Paddle: paddles.append(entity as! Paddle)
             default: break
             }
             
@@ -222,12 +231,13 @@ class Game : NSObject {
         
         var angle: CGFloat
         
-        if paddle == redPaddle {
-            angle = (1 - relativeOffset) * CGFloat(reflectAngle) + CGFloat(angleOffset)
-        } else {
+        switch paddle.player {
+        case .Blue:
             angle = relativeOffset * CGFloat(reflectAngle) + CGFloat(angleOffset) + CGFloat(M_PI)
+        case .Red:
+            angle = (1 - relativeOffset) * CGFloat(reflectAngle) + CGFloat(angleOffset)
         }
-
+        
         if ((paddle.velocity.dy > 0 && ball.velocity.dy > 0) ||
             (paddle.velocity.dy < 0 && ball.velocity.dy < 0)) {
             print("+ speed")
@@ -273,7 +283,7 @@ class Game : NSObject {
                 }
             }
 
-            entitiesToRemove.append(block)
+            removeEntity(block)
         }
     }
     
@@ -335,10 +345,10 @@ class Game : NSObject {
     }
     
     private func paddleForPlayer(player: Player) -> Paddle? {
-        let paddles = [redPaddle, bluePaddle].flatMap{ $0 }
-
-        let paddle = paddles.filter { paddle -> Bool in
-            return paddle.player == player
+        var paddle: Paddle?
+        
+        paddle = paddles.filter { testPaddle -> Bool in
+            testPaddle.player == player
         }.first
         
         return paddle
