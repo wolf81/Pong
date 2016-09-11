@@ -9,6 +9,8 @@
 import SpriteKit
 
 class Ball : Entity {
+    var owner: Player?
+    
     init(position: CGPoint, velocity: CGVector) {
         super.init()
         

@@ -210,6 +210,11 @@ class Game : NSObject {
     private func handleContactBetweenBall(ball: Ball, andPaddle paddle: Paddle) {
         var speed = ball.speed
         
+        if ball.dynamicType === Ball.self {
+            print("ball: \(ball)")
+            ball.owner = paddle.player
+        }
+        
         let offset = ball.position.y + (Constants.paddleHeight / 2) - paddle.position.y
         let relativeOffset = fmax(fmin(offset / Constants.paddleHeight, 1), 0)        
         let angleOffset = GLKMathDegreesToRadians(20)
@@ -255,15 +260,19 @@ class Game : NSObject {
         } else {
             ball.velocity = CGVector(dx: velocity.dx, dy: -velocity.dy)
         }
-
-        if !(ball is TracerBall) {
-            switch block.power {
-            case .Repair:
-                bluePaddle.repair()
-            default:
-                break
+        
+        if ball.dynamicType === Ball.self {
+            guard let player = ball.owner else {
+                return
             }
-            
+
+            if let paddle = paddleForPlayer(player) {
+                switch block.power {
+                case .Repair: paddle.repair()
+                default: break
+                }
+            }
+
             entitiesToRemove.append(block)
         }
     }
@@ -316,6 +325,16 @@ class Game : NSObject {
         tracerBall = TracerBall(forBall: ball, position: ball.position, velocity: velocity)
         
         return tracerBall
+    }
+    
+    private func paddleForPlayer(player: Player) -> Paddle? {
+        let paddles = [redPaddle, bluePaddle].flatMap{ $0 }
+
+        let paddle = paddles.filter { paddle -> Bool in
+            return paddle.player == player
+        }.first
+        
+        return paddle
     }
 }
 
