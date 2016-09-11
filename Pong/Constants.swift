@@ -62,12 +62,12 @@ enum Action: Int {
     case Pause
 }
 
-enum Power {
+enum Power: Int {
+    case Repair = 0
+    case MultiBall
     case Laser
     case Shield
-    case MultiBall
     case Mines
-    case Repair
     case SpeedUp
     case SlowDown
 }

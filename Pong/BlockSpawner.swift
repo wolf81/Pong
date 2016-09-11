@@ -28,8 +28,9 @@ class BlockSpawner {
         
         if blockCount < 3 {
             let pos = randomPosition()
-            let color = SKColor.orangeColor()
-            let block = Block(power: .Repair, position: pos, color: color)            
+            let power = randomPower()
+            let color = colorForPower(power)
+            let block = Block(power: power, position: pos, color: color)
             game.addEntity(block)
         }
     }
@@ -39,6 +40,26 @@ class BlockSpawner {
         self.yRange = yRange
     }
 
+    private func randomPower() -> Power {
+        var power: Power
+        
+        let powerIdx = GKRandomSource.sharedRandom().nextIntWithUpperBound(2)
+        power = Power(rawValue: powerIdx)!
+        
+        return power
+    }
+    
+    private func colorForPower(power: Power) -> SKColor {
+        var color: SKColor
+        
+        switch power {
+        case .Repair: color = SKColor.greenColor()
+        default: color = SKColor.redColor()
+        }
+        
+        return color
+    }
+    
     private func randomPosition() -> CGPoint {
         let x = GKRandomSource.sharedRandom().nextIntWithUpperBound(xRange.count) + xRange.startIndex
         let y = GKRandomSource.sharedRandom().nextIntWithUpperBound(yRange.count) + yRange.startIndex

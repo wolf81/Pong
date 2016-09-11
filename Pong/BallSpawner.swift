@@ -36,11 +36,11 @@ class BallSpawner {
         let ballCount = game.balls.count
         
         if ballCount == 0 {
-            spawnBall()
+            spawnBall(origin)
         }
     }
     
-    func spawnBall() {
+    func spawnBall(position: CGPoint) {
         guard let game = self.game else {
             return
         }
@@ -48,7 +48,7 @@ class BallSpawner {
         let angle = randomAngleForCurrentPlayer()
         
         let velocity = velocityForAngle(angle, speed: self.speed)
-        let ball = Ball(position: origin, velocity: velocity)
+        let ball = Ball(position: position, velocity: velocity)
         game.addEntity(ball)
 
         spawnTracerBallForBall(ball)

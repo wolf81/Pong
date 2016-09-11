@@ -24,6 +24,8 @@ import SpriteKit
 class Block : Entity {
     var power: Power
     
+    var didTrigger = false
+    
     init(power: Power, position: CGPoint, color: SKColor) {
         self.power = power
         

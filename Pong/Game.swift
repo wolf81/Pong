@@ -196,10 +196,7 @@ class Game : NSObject {
     }
     
     private func handleContactBetweenBall(ball: Ball, andPaddle paddle: Paddle) {
-        var speed = ball.speed
-        
         if ball.dynamicType === Ball.self {
-            print("ball: \(ball)")
             ball.owner = paddle.player
         }
         
@@ -217,17 +214,7 @@ class Game : NSObject {
             angle = (1 - relativeOffset) * CGFloat(reflectAngle) + CGFloat(angleOffset)
         }
         
-        if ((paddle.velocity.dy > 0 && ball.velocity.dy > 0) ||
-            (paddle.velocity.dy < 0 && ball.velocity.dy < 0)) {
-            print("+ speed")
-            speed += 70
-        } else if ((paddle.velocity.dy > 0 && ball.velocity.dy < 0) ||
-            (paddle.velocity.dy < 0 && ball.velocity.dy > 0)) {
-            print("- speed")
-            speed -= 70
-        }
-        
-        updateBall(ball, angle: Float(angle), speed: speed)
+        updateBall(ball, angle: Float(angle), speed: ball.speed)
 
         ballSpawner.spawnTracerBallForBall(ball)
     }
@@ -250,6 +237,12 @@ class Game : NSObject {
         }
         
         if ball.dynamicType === Ball.self {
+            if block.didTrigger == true {
+                return
+            }
+            
+            block.didTrigger = true
+            
             guard let player = ball.owner else {
                 return
             }
@@ -257,10 +250,14 @@ class Game : NSObject {
             if let paddle = paddleForPlayer(player) {
                 switch block.power {
                 case .Repair: paddle.repair()
+                case .MultiBall:
+                    ballSpawner.spawnBall(block.position)
+                    ballSpawner.spawnBall(block.position)
+                    ballSpawner.spawnBall(block.position)
                 default: break
                 }
             }
-
+            
             removeEntity(block)
         }
     }
