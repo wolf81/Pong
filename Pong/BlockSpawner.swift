@@ -12,8 +12,8 @@ import GameplayKit
 class BlockSpawner {
     weak var game: Game?
     
-    var xRange = 0 ..< 100
-    var yRange = 0 ..< 100
+    private(set) var xRange = 0 ..< 100
+    private(set) var yRange = 0 ..< 100
     
     init(forGame game: Game) {
         self.game = game
@@ -34,9 +34,11 @@ class BlockSpawner {
         }
     }
     
-    func spawn() {
+    func configure(xRange: Range<Int>, yRange: Range<Int>) {
+        self.xRange = xRange
+        self.yRange = yRange
     }
-    
+
     private func randomPosition() -> CGPoint {
         let x = GKRandomSource.sharedRandom().nextIntWithUpperBound(xRange.count) + xRange.startIndex
         let y = GKRandomSource.sharedRandom().nextIntWithUpperBound(yRange.count) + yRange.startIndex

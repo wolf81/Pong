@@ -14,17 +14,15 @@ class Game : NSObject {
     
     let cpuControlSystem = GKComponentSystem(componentClass: CpuControlComponent.self)
     
-    let randomAngle = GKRandomDistribution(lowestValue: 45, highestValue: 135)
-    
     private var blockSpawner: BlockSpawner!
+    private var ballSpawner: BallSpawner!
     
-    private var nextPlayer: Player = .Red
+    private(set) var nextPlayer: Player = .Red
     
     private var paddles = [Paddle]()
     private var beams = [Beam]()
     private var walls = [Wall]()
-    private var balls = [Ball]()
-    
+    private(set) var balls = [Ball]()
     private(set) var tracerBalls = [TracerBall]()
     private(set) var blocks = [Block]()
     
@@ -37,26 +35,27 @@ class Game : NSObject {
     override private init() {
         super.init()
         
-        self.blockSpawner = BlockSpawner(forGame: self)
+        blockSpawner = BlockSpawner(forGame: self)
+        ballSpawner = BallSpawner(forGame: self)
     }
 
     func setup(forScene gameScene: GameScene) {
         self.gameScene = gameScene
         
-        let y: CGFloat = gameScene.frame.height / 2
+        let midY = CGRectGetMidY(gameScene.frame)
+        let midX = CGRectGetMidX(gameScene.frame)
         let offset: CGFloat = 15.0
         
         gameScene.backgroundColor = SKColor.lightGrayColor()
         
-        let paddle_p1 = Paddle(forPlayer: .Red, withControl: .Human, position: CGPoint(x: offset, y: y), color: SKColor.redColor())
-        let paddle_p2 = Paddle(forPlayer: .Blue, withControl: .Cpu, position: CGPoint(x: gameScene.frame.width - offset, y: y), color: SKColor.blueColor())
+        let paddle_p1 = Paddle(forPlayer: .Red, withControl: .Human, position: CGPoint(x: offset, y: midY), color: SKColor.redColor())
+        let paddle_p2 = Paddle(forPlayer: .Blue, withControl: .Cpu, position: CGPoint(x: gameScene.frame.width - offset, y: midY), color: SKColor.blueColor())
         
         let size = CGSize(width: gameScene.frame.width + 20, height: 4.0)
         let topY = gameScene.frame.height - size.height - 60
         
-        let x = CGRectGetMidX(gameScene.frame)
-        let topWall = Wall(position: CGPoint(x: x, y: topY), size: size, color: SKColor.purpleColor())
-        let bottomWall = Wall(position: CGPoint(x: x, y: size.height), size: size, color: SKColor.purpleColor())
+        let topWall = Wall(position: CGPoint(x: midX, y: topY), size: size, color: SKColor.purpleColor())
+        let bottomWall = Wall(position: CGPoint(x: midX, y: size.height), size: size, color: SKColor.purpleColor())
         
         gameScene.physicsWorld.contactDelegate = self
         
@@ -65,6 +64,7 @@ class Game : NSObject {
         }
 
         configureBlockSpawnerForScene(gameScene, xOffset: 250, yOffset: 100)
+        configureBallSpawnerForScene(gameScene, minAngle: 35, maxAngle: 135)
     }
 
     func movePaddle(direction: Direction, forPlayer player: Player) {
@@ -119,8 +119,9 @@ class Game : NSObject {
         cpuControlSystem.updateWithDeltaTime(deltaTime)
         
         blockSpawner.updateWithDeltaTime(deltaTime)
+        ballSpawner.updateWithDeltaTime(deltaTime)
         
-        let balls: [Ball] = self.balls + tracerBalls
+        let balls: [Ball] = self.balls + self.tracerBalls
         for ball in balls {
             if let vc_ball = ball.componentForClass(VisualComponent) {
                 let origin = vc_ball.sprite.position
@@ -137,28 +138,6 @@ class Game : NSObject {
             }
         }
         
-        if balls.count == 0 {
-            let y: CGFloat = gameScene.frame.height / 2
-            
-            switch nextPlayer {
-            case .Red: nextPlayer = .Blue
-            case .Blue: nextPlayer = .Red
-            }
-            
-            let position = CGPoint(x: gameScene.frame.width / 2, y: y)
-            
-            var angle = GLKMathDegreesToRadians(Float(randomAngle.nextInt()))
-            if nextPlayer == .Red {
-                angle += Float(M_PI)
-            }
-            
-            let ball = spawnBall(position, angle: angle, speed: Constants.ballSpeed)
-            entitiesToAdd.append(ball)
-            
-            let tracerBall = spawnTracerBall(forBall: ball, angle: angle, speed: Constants.ballSpeed + 50)
-            entitiesToAdd.append(tracerBall)
-        }
-
         for paddle in paddles {
             guard let vc_paddle = paddle.componentForClass(VisualComponent) else {
                 continue
@@ -250,8 +229,7 @@ class Game : NSObject {
         
         updateBall(ball, angle: Float(angle), speed: speed)
 
-        let ball = spawnTracerBall(forBall: ball, angle: Float(angle), speed: speed + 50)
-        entitiesToAdd.append(ball)
+        ballSpawner.spawnTracerBallForBall(ball)
     }
     
     private func handleContactBetweenBall(ball: Ball, andWall wall: Wall) {
@@ -314,34 +292,17 @@ class Game : NSObject {
         ball.velocity = velocity
     }
     
-    private func spawnBall(position: CGPoint, angle: Float, speed: Float) -> Ball {
-        var ball: Ball
-        
-        let dy = cos(angle) * speed
-        let dx = sin(angle) * speed
-        let velocity = CGVector(dx: CGFloat(dx), dy: CGFloat(dy))
-        ball = Ball(position: position, velocity: velocity)
-        
-        return ball
-    }
-    
-    private func spawnTracerBall(forBall ball: Ball, angle: Float, speed: Float) -> TracerBall {
-        var tracerBall: TracerBall
-        
-        let dy = cos(angle) * speed
-        let dx = sin(angle) * speed
-        let velocity = CGVector(dx: CGFloat(dx), dy: CGFloat(dy))
-        
-        tracerBall = TracerBall(forBall: ball, position: ball.position, velocity: velocity)
-        
-        return tracerBall
+    private func configureBallSpawnerForScene(scene: SKScene, minAngle: Int, maxAngle: Int) {
+        let midX = CGRectGetMidX(scene.frame)
+        let midY = CGRectGetMidY(scene.frame)
+        let origin = CGPoint(x: midX, y: midY)
+        ballSpawner.configure(origin, minAngle: minAngle, maxAngle: maxAngle)
     }
     
     private func configureBlockSpawnerForScene(scene: SKScene, xOffset: Int, yOffset: Int) {
         let maxX = Int(scene.frame.size.width) - (xOffset * 2)
         let maxY = Int(scene.frame.size.height) - (yOffset * 2)
-        blockSpawner.xRange = xOffset ..< maxX
-        blockSpawner.yRange = yOffset ..< maxY
+        blockSpawner.configure(xOffset ..< maxX, yRange: yOffset ..< maxY)
     }
     
     private func paddleForPlayer(player: Player) -> Paddle? {
