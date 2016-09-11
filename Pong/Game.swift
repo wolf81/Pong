@@ -16,24 +16,29 @@ class Game : NSObject {
     
     let randomAngle = GKRandomDistribution(lowestValue: 45, highestValue: 135)
     
+    private var blockSpawner: BlockSpawner!
+    
     private var nextPlayer: Player = .Red
     
     private var redPaddle: Paddle!
     private var bluePaddle: Paddle!
     
     private var beams = [Beam]()
-    private var blocks = [Block]()
     private var walls = [Wall]()
     private var balls = [Ball]()
     private(set) var tracerBalls = [TracerBall]()
+    private(set) var blocks = [Block]()
     
     private(set) var gameScene: GameScene?
     
     private var entitiesToRemove = [Entity]()
     private var entitiesToAdd = [Entity]()
     
+    // Hide initializer, for this is a singleton.
     override private init() {
-        // Hide initializer, for this is a singleton.
+        super.init()
+        
+        self.blockSpawner = BlockSpawner(forGame: self)
     }
 
     func setup(forScene gameScene: GameScene) {
@@ -56,21 +61,10 @@ class Game : NSObject {
         
         gameScene.physicsWorld.contactDelegate = self
         
-        let maxX = Int(gameScene.frame.size.width) - 400
-        let maxY = Int(gameScene.frame.size.height) - 200
-        
-        var blocks = [Block]()
-        for i in 0 ..< 3 {
-            let x = GKRandomSource.sharedRandom().nextIntWithUpperBound(maxX) + 200
-            let y = GKRandomSource.sharedRandom().nextIntWithUpperBound(maxY) + 100
-            
-            let pos = CGPoint(x: x, y: y)
-            let block = Block(power: .Repair, position: pos, color: SKColor.orangeColor())
-            blocks.append(block)
-        }
-        
-        let entities: [Entity] = blocks + [redPaddle, bluePaddle, topWall, bottomWall]
+        let entities: [Entity] = [redPaddle, bluePaddle, topWall, bottomWall]
         entitiesToAdd.appendContentsOf(entities)
+
+        configureBlockSpawnerForScene(gameScene, xOffset: 250, yOffset: 100)
     }
 
     func movePaddle(direction: Direction, forPlayer player: Player) {
@@ -101,6 +95,10 @@ class Game : NSObject {
             vc.sprite.physicsBody?.velocity = CGVector(dx: Constants.beamSpeed, dy: 0)
         }
     }
+
+    func addEntity(entity: Entity) {
+        entitiesToAdd.append(entity)
+    }
     
     // The main update loop. Called every frame to update game state.
     func update(deltaTime: CFTimeInterval) {
@@ -111,6 +109,8 @@ class Game : NSObject {
         updateEntityLists()
         
         cpuControlSystem.updateWithDeltaTime(deltaTime)
+        
+        blockSpawner.updateWithDeltaTime(deltaTime)
         
         let balls: [Ball] = self.balls + tracerBalls
         for ball in balls {
@@ -325,6 +325,13 @@ class Game : NSObject {
         tracerBall = TracerBall(forBall: ball, position: ball.position, velocity: velocity)
         
         return tracerBall
+    }
+    
+    private func configureBlockSpawnerForScene(scene: SKScene, xOffset: Int, yOffset: Int) {
+        let maxX = Int(scene.frame.size.width) - (xOffset * 2)
+        let maxY = Int(scene.frame.size.height) - (yOffset * 2)
+        blockSpawner.xRange = xOffset ..< maxX
+        blockSpawner.yRange = yOffset ..< maxY
     }
     
     private func paddleForPlayer(player: Player) -> Paddle? {
