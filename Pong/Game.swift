@@ -86,17 +86,35 @@ class Game : NSObject {
     }
     
     func fireBeam(forPlayer player: Player) {
-        guard let paddle = paddleForPlayer(player) else {
+        guard
+            let paddle = paddleForPlayer(player),
+            let gameScene = self.gameScene else {
             return
         }
         
-        let origin = CGPoint(x: paddle.position.x + 80, y: paddle.position.y)
+        if paddle.canAttack == false {
+            return
+        }
+
+        let midX = CGRectGetMidX(gameScene.frame)
+        
+        var origin: CGPoint
+        var velocity: CGVector
+        let xOffset: CGFloat = 80
+        
+        if paddle.position.x < midX {
+            origin = CGPoint(x: paddle.position.x + xOffset, y: paddle.position.y)
+            velocity = CGVector(dx: Constants.beamSpeed, dy: 0)
+        } else {
+            origin = CGPoint(x: paddle.position.x - xOffset, y: paddle.position.y)
+            velocity = CGVector(dx: -Constants.beamSpeed, dy: 0)
+        }
         
         let beam = Beam(position: origin, color: SKColor.purpleColor())
         addEntity(beam)
         
         if let vc = beam.componentForClass(VisualComponent) {
-            vc.sprite.physicsBody?.velocity = CGVector(dx: Constants.beamSpeed, dy: 0)
+            vc.sprite.physicsBody?.velocity = velocity
         }
     }
     
@@ -106,6 +124,27 @@ class Game : NSObject {
 
     func addEntity(entity: Entity) {
         entitiesToAdd.append(entity)
+    }
+        
+    func otherPlayer(forPlayer player: Player) -> Player {
+        var otherPlayer: Player
+        
+        switch player {
+        case .Blue: otherPlayer = .Red
+        case .Red: otherPlayer = .Blue
+        }
+        
+        return otherPlayer
+    }
+    
+    func paddleForPlayer(player: Player) -> Paddle? {
+        var paddle: Paddle?
+        
+        paddle = paddles.filter { testPaddle -> Bool in
+            testPaddle.player == player
+            }.first
+        
+        return paddle
     }
     
     // The main update loop. Called every frame to update game state.
@@ -120,6 +159,10 @@ class Game : NSObject {
         
         blockSpawner.updateWithDeltaTime(deltaTime)
         ballSpawner.updateWithDeltaTime(deltaTime)
+
+        paddles.forEach { p in
+            p.updateWithDeltaTime(deltaTime)
+        }
         
         let balls: [Ball] = self.balls + self.tracerBalls
         for ball in balls {
@@ -236,21 +279,18 @@ class Game : NSObject {
             ball.velocity = CGVector(dx: velocity.dx, dy: -velocity.dy)
         }
         
-        if ball.dynamicType === Ball.self {
-            guard let player = ball.owner where block.didTrigger == false else {
-                return
-            }
-
+        if ball.dynamicType === Ball.self && block.didTrigger == false {
             block.didTrigger = true
 
-            if let paddle = paddleForPlayer(player) {
-                switch block.power {
-                case .Repair: paddle.repair()
-                case .MultiBall:
-                    ballSpawner.spawnBall(block.position)
-                    ballSpawner.spawnBall(block.position)
-                    ballSpawner.spawnBall(block.position)
-                default: break
+            if let player = ball.owner {
+                if let paddle = paddleForPlayer(player) {
+                    switch block.power {
+                    case .Repair: paddle.repair()
+                    case .MultiBall:
+                        ballSpawner.spawnBall(block.position)
+                        ballSpawner.spawnBall(block.position)
+                    default: break
+                    }
                 }
             }
             
@@ -296,16 +336,6 @@ class Game : NSObject {
         let maxX = Int(scene.frame.size.width) - (xOffset * 2)
         let maxY = Int(scene.frame.size.height) - (yOffset * 2)
         blockSpawner.configure(xOffset ..< maxX, yRange: yOffset ..< maxY)
-    }
-    
-    private func paddleForPlayer(player: Player) -> Paddle? {
-        var paddle: Paddle?
-        
-        paddle = paddles.filter { testPaddle -> Bool in
-            testPaddle.player == player
-        }.first
-        
-        return paddle
     }
 }
 

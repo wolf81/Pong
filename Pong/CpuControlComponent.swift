@@ -21,6 +21,24 @@ class CpuControlComponent : GKComponent {
                 return
         }
         
+        if cpuPaddle.canAttack {
+            let position = cpuPaddle.position
+            let otherPlayer = Game.sharedInstance.otherPlayer(forPlayer: cpuPaddle.player)
+            
+            guard let otherPaddle = Game.sharedInstance.paddleForPlayer(otherPlayer) else {
+                return
+            }
+            
+            let yOffset = Constants.paddleHeight / 2
+            let yRange = position.y - yOffset ..< position.y + yOffset
+            
+            print("yRange: \(yRange), pos: \(otherPaddle.position.y)")
+            
+            if yRange.contains(otherPaddle.position.y) {
+                cpuPaddle.attack()
+            }
+        }
+        
         // find closest ball in direction of paddle
         
         let balls = Game.sharedInstance.tracerBalls.filter { tracerBall -> Bool in

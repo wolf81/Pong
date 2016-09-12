@@ -10,6 +10,13 @@ import SpriteKit
 
 class Paddle : Entity {
     private var paddleRepr = [Int]()
+    private var destroyed = false
+    
+    private var attackCooldown: Double = 0.0
+    
+    var canAttack: Bool {
+        return attackCooldown >= 4.0
+    }
     
     private (set) var player: Player
     private (set) var color: SKColor
@@ -46,6 +53,21 @@ class Paddle : Entity {
         addComponent(vc)
     }
     
+    override func updateWithDeltaTime(seconds: NSTimeInterval) {
+        super.updateWithDeltaTime(seconds)
+        
+        if attackCooldown < 4.0 {
+            attackCooldown = fmin(attackCooldown + seconds, Double(4.0))
+        }
+    }
+    
+    func attack() {
+        if canAttack {
+            Game.sharedInstance.fireBeam(forPlayer: player)
+            attackCooldown = 0
+        }
+    }
+    
     func repair() {
         (0 ..< Int(Constants.paddleHeight)).forEach { i in
             paddleRepr[i] = 1
@@ -61,24 +83,25 @@ class Paddle : Entity {
         if let vc = componentForClass(VisualComponent) {
             vc.replaceSprite(sprite)
         }
+        
+        destroyed = false
     }
     
     func addHole(y: CGFloat, height: CGFloat) {
         let y = Constants.paddleHeight - y
-        
-        // STEP 1: Create hole ranges
-        //          => hole range intersects existing hole range:
-        //              - y: create union
-        //              - n: create new hole range
-        // STEP 2: Convert hole ranges into paddle ranges
-        //          => more or less the inverse when taking into account paddle frame
-        // STEP 3: Create sprites for paddle fragments
         
         let hole_y1 = fmin(fmax(y - height / 2, 0), Constants.paddleHeight)
         let hole_y2 = fmax(fmin(y + height / 2, Constants.paddleHeight), 0)
 
         for i in Int(hole_y1) ..< Int(hole_y2) {
             paddleRepr[i] = 0
+        }
+
+        paddleRepr.forEach { i in
+            if i == 1 {
+                destroyed = false
+                return
+            }
         }
 
         updatePaddleSprite()
