@@ -72,6 +72,17 @@ class Paddle : Entity {
             shieldDuration -= seconds
             
             if shieldDuration <= 0 {
+                if let vc = componentForClass(VisualComponent) {
+                    if vc.sprite.children.count == 0 {
+                        vc.sprite.color = color
+                    } else {
+                        vc.sprite.children.forEach({ node in
+                            if let sprite = node as? SpriteNode {
+                                sprite.color = color
+                            }
+                        })
+                    }
+                }
                 print("remove color")
             }
         }
