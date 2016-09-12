@@ -9,7 +9,7 @@
 import SpriteKit
 
 class Ball : Entity {
-    var owner: Player?
+    private(set) var owner: Player?
     
     init(position: CGPoint, velocity: CGVector) {
         super.init()
@@ -25,6 +25,8 @@ class Ball : Entity {
         shape.strokeColor = SKColor.whiteColor()
 
         let sprite = SpriteNode(texture: shape.texture)
+        sprite.color = SKColor.whiteColor()
+        sprite.colorBlendFactor = 0.8
         sprite.entity = self
         sprite.position = position
         
@@ -41,5 +43,14 @@ class Ball : Entity {
         pBody.contactTestBitMask = EntityCategory.Wall | EntityCategory.Block | EntityCategory.Paddle
                 
         vc.sprite.physicsBody = pBody
+    }
+    
+    func changeOwner(owner: Player) {
+        self.owner = owner
+        
+        if let color = Game.sharedInstance.paddleForPlayer(owner)?.color,
+            let vc = componentForClass(VisualComponent) {
+            vc.sprite.color = color
+        }
     }
 }

@@ -21,7 +21,6 @@ class Game : NSObject {
     
     private var paddles = [Paddle]()
     private var beams = [Beam]()
-    private var walls = [Wall]()
     private(set) var balls = [Ball]()
     private(set) var tracerBalls = [TracerBall]()
     private(set) var blocks = [Block]()
@@ -43,7 +42,6 @@ class Game : NSObject {
         self.gameScene = gameScene
         
         let midY = CGRectGetMidY(gameScene.frame)
-        let midX = CGRectGetMidX(gameScene.frame)
         let offset: CGFloat = 15.0
         
         gameScene.backgroundColor = SKColor.lightGrayColor()
@@ -51,15 +49,19 @@ class Game : NSObject {
         let paddle_p1 = Paddle(forPlayer: .Red, withControl: .Human, position: CGPoint(x: offset, y: midY), color: SKColor.redColor())
         let paddle_p2 = Paddle(forPlayer: .Blue, withControl: .Cpu, position: CGPoint(x: gameScene.frame.width - offset, y: midY), color: SKColor.blueColor())
         
-        let size = CGSize(width: gameScene.frame.width + 20, height: 4.0)
-        let topY = gameScene.frame.height - size.height - 60
-        
-        let topWall = Wall(position: CGPoint(x: midX, y: topY), size: size, color: SKColor.purpleColor())
-        let bottomWall = Wall(position: CGPoint(x: midX, y: size.height), size: size, color: SKColor.purpleColor())
+        let size = CGSize(width: gameScene.frame.width + 20, height: gameScene.frame.size.height - 100)
+        let minX = (CGRectGetWidth(gameScene.frame) - size.width) / 2
+        let minY = (CGRectGetHeight(gameScene.frame) - size.height) / 2
+        let edgeRect = CGRect(x: minX, y: minY, width: size.width, height: size.height)
+        let pBody = SKPhysicsBody(edgeLoopFromRect: edgeRect)
+        pBody.categoryBitMask = EntityCategory.Wall
+        pBody.collisionBitMask = EntityCategory.Nothing
+        pBody.contactTestBitMask = EntityCategory.Ball
+        self.gameScene?.physicsBody = pBody
         
         gameScene.physicsWorld.contactDelegate = self
         
-        for entity in [paddle_p1, paddle_p2, topWall, bottomWall] {
+        for entity in [paddle_p1, paddle_p2] {
             addEntity(entity)
         }
 
@@ -208,7 +210,6 @@ class Game : NSObject {
             case is TracerBall: tracerBalls.remove(entity as! TracerBall)
             case is Ball: balls.remove(entity as! Ball)
             case is Beam: beams.remove(entity as! Beam)
-            case is Wall: walls.remove(entity as! Wall)
             case is Paddle: paddles.remove(entity as! Paddle)
             default: break
             }
@@ -218,7 +219,6 @@ class Game : NSObject {
         for entity in entitiesToAdd {
             switch entity {
             case is Block: blocks.append(entity as! Block)
-            case is Wall: walls.append(entity as! Wall)
             case is Beam: beams.append(entity as! Beam)
             case is TracerBall: tracerBalls.append(entity as! TracerBall)
             case is Ball: balls.append(entity as! Ball)
@@ -240,7 +240,7 @@ class Game : NSObject {
     
     private func handleContactBetweenBall(ball: Ball, andPaddle paddle: Paddle) {
         if ball.dynamicType === Ball.self {
-            ball.owner = paddle.player
+            ball.changeOwner(paddle.player)
         }
         
         let offset = ball.position.y + (Constants.paddleHeight / 2) - paddle.position.y
@@ -262,7 +262,7 @@ class Game : NSObject {
         ballSpawner.spawnTracerBallForBall(ball)
     }
     
-    private func handleContactBetweenBall(ball: Ball, andWall wall: Wall) {
+    private func handleContactBetweenWallAndBall(ball: Ball) {
         let velocity = ball.velocity
         ball.velocity = CGVector(dx: velocity.dx, dy: -velocity.dy)
     }
@@ -289,6 +289,8 @@ class Game : NSObject {
                         paddle.increaseBeamSize()
                     case .Repair:
                         paddle.repair()
+                    case .Shield:
+                        paddle.activateShieldForDuration(8)
                     case .MultiBall:
                         ballSpawner.spawnBall(block.position)
                         ballSpawner.spawnBall(block.position)
@@ -312,10 +314,12 @@ class Game : NSObject {
         var origin = paddleVc.sprite.convertPoint(beamVc.sprite.position, fromNode: gameScene)
         origin.y += Constants.paddleHeight / 2
         origin.y = Constants.paddleHeight - origin.y
-        paddle.addHole(origin.y, height: paddle.beamSize)
+        
+        let h = CGRectGetHeight(beamVc.sprite.frame)
+        paddle.addHole(origin.y, height: h)
     }
     
-    private func handleContactBetweenPaddle(paddle: Paddle, andWall wall: Wall) {
+    private func handleContactBetweenWallAndPaddle(paddle: Paddle) {
         paddle.velocity = CGVector.zero
     }
     
@@ -352,24 +356,38 @@ extension Game : SKPhysicsContactDelegate {
             let entity1 = bodyA.entity,
             let bodyB = contact.bodyB.node as? SpriteNode,
             let entity2 = bodyB.entity else {
+                var sprite: SpriteNode?
+                
+                switch (contact.bodyA.node, contact.bodyB.node) {
+                case (is GameScene, is SpriteNode):
+                    sprite = (contact.bodyB.node as! SpriteNode)
+                case (is SpriteNode, is GameScene):
+                    sprite = (contact.bodyA.node as! SpriteNode)
+                default: break
+                }
+                
+                guard let entity = sprite?.entity else {
+                    print("no entity for sprite: \(sprite)")
+                    return
+                }
+                
+                switch entity {
+                case is Ball:
+                    handleContactBetweenWallAndBall(entity as! Ball)
+                case is Paddle:
+                    handleContactBetweenWallAndPaddle(entity as! Paddle)
+                default: break
+                }
                 return
         }
         
-//        print("contact: \(entity1), \(entity2)")
+        print("contact: \(entity1), \(entity2)")
         
         switch (entity1, entity2) {
-        case (is Paddle, is Wall):
-            handleContactBetweenPaddle(entity1 as! Paddle, andWall: entity2 as! Wall)
-        case (is Wall, is Paddle):
-            handleContactBetweenPaddle(entity2 as! Paddle, andWall: entity1 as! Wall)
         case (is Paddle, is Beam):
             handleContactBetweenPaddle(entity1 as! Paddle, andBeam: entity2 as! Beam)
         case (is Beam, is Paddle):
             handleContactBetweenPaddle(entity2 as! Paddle, andBeam: entity1 as! Beam)
-        case (is Ball, is Wall):
-            handleContactBetweenBall(entity1 as! Ball, andWall: entity2 as! Wall)
-        case (is Wall, is Ball):
-            handleContactBetweenBall(entity2 as! Ball, andWall: entity1 as! Wall)
         case (is Ball, is Block):
             handleContactBetweenBall(entity1 as! Ball, andBlock: entity2 as! Block)
         case (is Block, is Ball):

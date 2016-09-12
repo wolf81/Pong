@@ -13,10 +13,15 @@ class Paddle : Entity {
     private var destroyed = false
     private(set) var beamSize: CGFloat = Constants.beamSize
     
-    private var attackCooldown: Double = 0.0
+    private var attackCooldown: Double = 0
+    private var shieldDuration: Double = 0
     
     var canAttack: Bool {
-        return attackCooldown >= 4.0
+        return attackCooldown >= 4 && destroyed == false
+    }
+    
+    var isShieldActive: Bool {
+        return shieldDuration > 0
     }
     
     private (set) var player: Player
@@ -39,9 +44,11 @@ class Paddle : Entity {
         
         self.speed = Constants.paddleSpeed
         
-        let shape = paddleShapeWithColor(color)
+        let shape = paddleShapeWithColor(SKColor.whiteColor())
         
         let sprite = SpriteNode(texture: shape.texture)
+        sprite.color = color
+        sprite.colorBlendFactor = 1.0
         sprite.entity = self
         sprite.position = position
         sprite.zPosition = EntityLayer.Paddle.rawValue
@@ -57,8 +64,16 @@ class Paddle : Entity {
     override func updateWithDeltaTime(seconds: NSTimeInterval) {
         super.updateWithDeltaTime(seconds)
         
-        if attackCooldown < 4.0 {
-            attackCooldown = fmin(attackCooldown + seconds, Double(4.0))
+        if attackCooldown < 4 {
+            attackCooldown = fmin(attackCooldown + seconds, Double(4))
+        }
+        
+        if shieldDuration > 0 {
+            shieldDuration -= seconds
+            
+            if shieldDuration <= 0 {
+                print("remove color")
+            }
         }
     }
     
@@ -69,13 +84,26 @@ class Paddle : Entity {
         }
     }
     
+    func activateShieldForDuration(duration: Double) {
+        self.shieldDuration = duration
+
+        guard let vc = componentForClass(VisualComponent) else {
+            return
+        }
+        
+        // TODO: Use smooth animation, revert after shield is gone.
+        vc.sprite.color = SKColor.yellowColor()
+    }
+    
     func repair() {
         (0 ..< Int(Constants.paddleHeight)).forEach { i in
             paddleRepr[i] = 1
         }
 
-        let shape = paddleShapeWithColor(color)
+        let shape = paddleShapeWithColor(SKColor.whiteColor())
         let sprite = SpriteNode(texture: shape.texture)
+        sprite.color = color
+        sprite.colorBlendFactor = 1.0
         
         let pBody = SKPhysicsBody(rectangleOfSize: shape.frame.size)
         configurePhysicsBody(pBody)
@@ -89,21 +117,18 @@ class Paddle : Entity {
     }
     
     func addHole(y: CGFloat, height: CGFloat) {
-        let y = Constants.paddleHeight - y
+        if isShieldActive {
+            return
+        }
         
-        let hole_y1 = fmin(fmax(y - height / 2, 0), Constants.paddleHeight)
-        let hole_y2 = fmax(fmin(y + height / 2, Constants.paddleHeight), 0)
-
-        for i in Int(hole_y1) ..< Int(hole_y2) {
+        let originY = Constants.paddleHeight - y
+        let yMin = fmin(fmax(originY - height / 2, 0), Constants.paddleHeight)
+        let yMax = fmax(fmin(originY + height / 2, Constants.paddleHeight), 0)
+        for i in Int(yMin) ..< Int(yMax) {
             paddleRepr[i] = 0
         }
 
-        paddleRepr.forEach { i in
-            if i == 1 {
-                destroyed = false
-                return
-            }
-        }
+        destroyed = paddleRepr.filter { i in i == 1 }.count == 0
 
         updatePaddleSprite()
     }
@@ -111,6 +136,8 @@ class Paddle : Entity {
     func increaseBeamSize() {
         let maxBeamSize = Constants.paddleHeight
         beamSize = fmin(beamSize + 20, maxBeamSize)
+        
+        print("beamSize: \(beamSize)")
     }
     
     func resetBeamSize() {
@@ -166,8 +193,10 @@ class Paddle : Entity {
         
         var pBodies = [SKPhysicsBody]()
         for rect in paddleRects {
-            let shape = paddleShapeWithColor(color, size: rect.size)
+            let shape = paddleShapeWithColor(SKColor.whiteColor(), size: rect.size)
             let sprite = SpriteNode(texture: shape.texture)
+            sprite.colorBlendFactor = 1.0
+            sprite.color = color
             sprite.zPosition = EntityLayer.PaddleFragment.rawValue
             sprite.position = rect.origin
             

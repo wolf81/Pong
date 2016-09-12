@@ -43,7 +43,7 @@ class BlockSpawner {
     private func randomPower() -> Power {
         var power: Power
         
-        let powerIdx = GKRandomSource.sharedRandom().nextIntWithUpperBound(3)
+        let powerIdx = GKRandomSource.sharedRandom().nextIntWithUpperBound(4)
         power = Power(rawValue: powerIdx)!
         
         return power
@@ -54,7 +54,8 @@ class BlockSpawner {
         
         switch power {
         case .Repair: color = SKColor.greenColor()
-        case .Laser: color = SKColor.yellowColor()
+        case .Laser: color = SKColor.purpleColor()
+        case .Shield: color = SKColor.yellowColor()
         default: color = SKColor.redColor()
         }
         
