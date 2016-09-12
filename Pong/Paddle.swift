@@ -11,6 +11,7 @@ import SpriteKit
 class Paddle : Entity {
     private var paddleRepr = [Int]()
     private var destroyed = false
+    private(set) var beamSize: CGFloat = Constants.beamSize
     
     private var attackCooldown: Double = 0.0
     
@@ -105,6 +106,15 @@ class Paddle : Entity {
         }
 
         updatePaddleSprite()
+    }
+    
+    func increaseBeamSize() {
+        let maxBeamSize = Constants.paddleHeight
+        beamSize = fmin(beamSize + 20, maxBeamSize)
+    }
+    
+    func resetBeamSize() {
+        self.beamSize = Constants.beamSize
     }
     
     private func updatePaddleSprite() {

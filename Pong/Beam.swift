@@ -9,10 +9,10 @@
 import SpriteKit
 
 class Beam : Entity {
-    init(position: CGPoint, color: SKColor) {
+    init(position: CGPoint, color: SKColor, size: CGFloat) {
         super.init()
         
-        let rect = CGRect(x: 0, y: 0, width: 100, height: Constants.beamHeight)
+        let rect = CGRect(x: 0, y: 0, width: 100, height: size)
         let path = CGPathCreateWithRect(rect, nil)
         let shape = SKShapeNode(path: path, centered: true)
         shape.fillColor = color

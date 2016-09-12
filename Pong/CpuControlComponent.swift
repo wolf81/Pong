@@ -32,8 +32,6 @@ class CpuControlComponent : GKComponent {
             let yOffset = Constants.paddleHeight / 2
             let yRange = position.y - yOffset ..< position.y + yOffset
             
-            print("yRange: \(yRange), pos: \(otherPaddle.position.y)")
-            
             if yRange.contains(otherPaddle.position.y) {
                 cpuPaddle.attack()
             }

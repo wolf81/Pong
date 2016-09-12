@@ -110,7 +110,7 @@ class Game : NSObject {
             velocity = CGVector(dx: -Constants.beamSpeed, dy: 0)
         }
         
-        let beam = Beam(position: origin, color: SKColor.purpleColor())
+        let beam = Beam(position: origin, color: SKColor.purpleColor(), size: paddle.beamSize)
         addEntity(beam)
         
         if let vc = beam.componentForClass(VisualComponent) {
@@ -285,7 +285,10 @@ class Game : NSObject {
             if let player = ball.owner {
                 if let paddle = paddleForPlayer(player) {
                     switch block.power {
-                    case .Repair: paddle.repair()
+                    case .Laser:
+                        paddle.increaseBeamSize()
+                    case .Repair:
+                        paddle.repair()
                     case .MultiBall:
                         ballSpawner.spawnBall(block.position)
                         ballSpawner.spawnBall(block.position)
@@ -309,7 +312,7 @@ class Game : NSObject {
         var origin = paddleVc.sprite.convertPoint(beamVc.sprite.position, fromNode: gameScene)
         origin.y += Constants.paddleHeight / 2
         origin.y = Constants.paddleHeight - origin.y
-        paddle.addHole(origin.y, height: Constants.beamHeight)
+        paddle.addHole(origin.y, height: paddle.beamSize)
     }
     
     private func handleContactBetweenPaddle(paddle: Paddle, andWall wall: Wall) {
