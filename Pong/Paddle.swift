@@ -10,14 +10,14 @@ import SpriteKit
 
 class Paddle : Entity {
     private var paddleRepr = [Int]()
-    private var destroyed = false
+    private(set) var isDestroyed = false
     private(set) var beamSize: CGFloat = Constants.beamSize
     
     private var attackCooldown: Double = 0
     private var shieldDuration: Double = 0
     
     var canAttack: Bool {
-        return attackCooldown >= 4 && destroyed == false
+        return attackCooldown >= 4 && isDestroyed == false
     }
     
     var isShieldActive: Bool {
@@ -124,7 +124,7 @@ class Paddle : Entity {
             vc.replaceSprite(sprite)
         }
         
-        destroyed = false
+        isDestroyed = false
     }
     
     func addHole(y: CGFloat, height: CGFloat) {
@@ -139,7 +139,7 @@ class Paddle : Entity {
             paddleRepr[i] = 0
         }
 
-        destroyed = paddleRepr.filter { i in i == 1 }.count == 0
+        isDestroyed = paddleRepr.filter { i in i == 1 }.count == 0
 
         updatePaddleSprite()
     }

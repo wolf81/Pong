@@ -46,7 +46,7 @@ class Game : NSObject {
         
         gameScene.backgroundColor = SKColor.lightGrayColor()
         
-        let paddle_p1 = Paddle(forPlayer: .Red, withControl: .Human, position: CGPoint(x: offset, y: midY), color: SKColor.redColor())
+        let paddle_p1 = Paddle(forPlayer: .Red, withControl: .Cpu, position: CGPoint(x: offset, y: midY), color: SKColor.redColor())
         let paddle_p2 = Paddle(forPlayer: .Blue, withControl: .Cpu, position: CGPoint(x: gameScene.frame.width - offset, y: midY), color: SKColor.blueColor())
         
         let size = CGSize(width: gameScene.frame.width + 20, height: gameScene.frame.size.height - 100)
@@ -127,7 +127,7 @@ class Game : NSObject {
     func addEntity(entity: Entity) {
         entitiesToAdd.append(entity)
     }
-        
+    
     func otherPlayer(forPlayer player: Player) -> Player {
         var otherPlayer: Player
         
