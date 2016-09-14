@@ -16,88 +16,100 @@ class CpuControlComponent : GKComponent {
     }
     
     override func updateWithDeltaTime(seconds: NSTimeInterval) {
+        let game = Game.sharedInstance
+        let balls: [Ball] = Game.sharedInstance.tracerBalls + Game.sharedInstance.balls
+        
         guard
-            let cpuPaddle = self.paddle where Game.sharedInstance.tracerBalls.count > 0 else {
+            let paddle = self.paddle where balls.count > 0,
+            let gameScene = game.gameScene else {
                 return
         }
-        
-        if cpuPaddle.canAttack {
-            let position = cpuPaddle.position
-            let otherPlayer = Game.sharedInstance.otherPlayer(forPlayer: cpuPaddle.player)
+
+        if paddle.canAttack {
+            let position = paddle.position
+            let otherPlayer = game.otherPlayer(forPlayer: paddle.player)
             
-            guard let otherPaddle = Game.sharedInstance.paddleForPlayer(otherPlayer) else {
+            guard let otherPaddle = game.paddleForPlayer(otherPlayer) else {
                 return
             }
             
             if otherPaddle.isDestroyed == false {
                 let yOffset = Constants.paddleHeight / 2
-                let yRange = position.y - yOffset ..< position.y + yOffset
+                let yRange = (position.y - yOffset) ..< (position.y + yOffset)
                 
                 if yRange.contains(otherPaddle.position.y) {
-                    cpuPaddle.attack()
+                    paddle.attack()
                 }
             }
         }
         
-        // find closest ball in direction of paddle
-        var balls: [Ball] = Game.sharedInstance.tracerBalls + Game.sharedInstance.balls
-        
-        balls = balls.filter { tracerBall -> Bool in
-            if tracerBall.position.x < cpuPaddle.position.x {
+        if let ball = closestBallForPaddle(paddle, fromBalls: balls) {
+            movePaddle(paddle, toBall: ball)
+        } else {
+            movePaddleToCenter(paddle, forScene: gameScene)
+        }
+    }
+    
+    // MARK: - Private
+    
+    private func closestBallForPaddle(paddle: Paddle, fromBalls balls: [Ball]) -> Ball? {
+        let ball = balls.filter { tracerBall -> Bool in
+            if tracerBall.position.x < paddle.position.x {
                 return tracerBall.velocity.dx > 0
-            } else if tracerBall.position.x > cpuPaddle.position.x {
+            } else if tracerBall.position.x > paddle.position.x {
                 return tracerBall.velocity.dx < 0
             } else {
                 return false
             }
         }.sort { (tracerBall1, tracerBall2) -> Bool in
-            if tracerBall1.position.x < cpuPaddle.position.x {
+            if tracerBall1.position.x < paddle.position.x {
                 return tracerBall1.position.x > tracerBall2.position.x
-            } else if tracerBall1.position.x > cpuPaddle.position.x {
+            } else if tracerBall1.position.x > paddle.position.x {
                 return tracerBall1.position.x < tracerBall2.position.x
             } else {
                 return false
             }
-        }
-
-        let game = Game.sharedInstance
+        }.first
+        
+        return ball
+    }
+    
+    private func movePaddleToCenter(paddle: Paddle, forScene scene: GameScene) {
         let yOffset = Constants.paddleHeight / 5
-
-        if let ball = balls.first {
-            let range = cpuPaddle.position.y - yOffset ... cpuPaddle.position.y + yOffset
-            
-            if range.contains(ball.position.y) == false {
-                if cpuPaddle.position.y > ball.position.y {
-                    if cpuPaddle.velocity.dy >= 0 {
-                        game.movePaddle(Direction.Down, forPlayer: cpuPaddle.player)
-                    }
-                } else if cpuPaddle.position.y < ball.position.y {
-                    if cpuPaddle.velocity.dy <= 0 {
-                        game.movePaddle(Direction.Up, forPlayer: cpuPaddle.player)
-                    }
-                } else {
-                    game.movePaddle(Direction.None, forPlayer: cpuPaddle.player)
+        let midY = CGRectGetMidY(scene.frame)
+        let range = (midY - yOffset) ..< (midY + yOffset)
+        
+        if range.contains(paddle.position.y) {
+            Game.sharedInstance.movePaddle(Direction.None, forPlayer: paddle.player)
+        } else {
+            switch paddle.position.y {
+            case _ where paddle.position.y > midY:
+                Game.sharedInstance.movePaddle(Direction.Down, forPlayer: paddle.player)
+            default:
+                Game.sharedInstance.movePaddle(Direction.Up, forPlayer: paddle.player)
+            }
+        }
+    }
+    
+    private func movePaddle(paddle: Paddle, toBall ball: Ball) {
+        let yOffset = Constants.paddleHeight / 5
+        let yRange = (paddle.position.y - yOffset) ..< (paddle.position.y + yOffset)
+        
+        if yRange.contains(ball.position.y) == false {
+            switch ball.position.y {
+            case _ where paddle.position.y > ball.position.y:
+                if paddle.velocity.dy >= 0 {
+                    Game.sharedInstance.movePaddle(Direction.Down, forPlayer: paddle.player)
                 }
-            } else {
-                game.movePaddle(Direction.None, forPlayer: cpuPaddle.player)
+            case _ where paddle.position.y < ball.position.y:
+                if paddle.velocity.dy <= 0 {
+                    Game.sharedInstance.movePaddle(Direction.Up, forPlayer: paddle.player)
+                }
+            default:
+                Game.sharedInstance.movePaddle(Direction.None, forPlayer: paddle.player)
             }
         } else {
-            guard let gameScene = game.gameScene else {
-                return
-            }
-            
-            let midY = CGRectGetMidY(gameScene.frame)
-            let range = midY - yOffset ... midY + yOffset
-
-            if range.contains(cpuPaddle.position.y) {
-                game.movePaddle(Direction.None, forPlayer: cpuPaddle.player)
-            } else {
-                if cpuPaddle.position.y > midY {
-                    game.movePaddle(Direction.Down, forPlayer: cpuPaddle.player)
-                } else {
-                    game.movePaddle(Direction.Up, forPlayer: cpuPaddle.player)
-                }
-            }
+            Game.sharedInstance.movePaddle(Direction.None, forPlayer: paddle.player)
         }
     }
 }
