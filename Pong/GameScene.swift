@@ -8,7 +8,7 @@
 
 import SpriteKit
 
-class GameScene : BaseScene {
+class GameScene : Scene {
     private var lastUpdateTime: NSTimeInterval = 0
     
     override func didMoveToView(view: SKView) {        

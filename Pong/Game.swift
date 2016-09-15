@@ -291,6 +291,10 @@ class Game : NSObject {
                         paddle.repair()
                     case .Shield:
                         paddle.activateShieldForDuration(8)
+                    case .SpeedUp:
+                        ball.speed = fmin(ball.speed + 50, 900)
+                    case .SlowDown:
+                        ball.speed = fmax(ball.speed - 50, 400)
                     case .MultiBall:
                         ballSpawner.spawnBall(block.position)
                         ballSpawner.spawnBall(block.position)

@@ -26,7 +26,7 @@ class BlockSpawner {
         
         let blockCount = game.blocks.count
         
-        if blockCount < 3 {
+        if blockCount < 5 {
             let pos = randomPosition()
             let power = randomPower()
             let color = colorForPower(power)
@@ -43,7 +43,8 @@ class BlockSpawner {
     private func randomPower() -> Power {
         var power: Power
         
-        let powerIdx = GKRandomSource.sharedRandom().nextIntWithUpperBound(4)
+        let powerCount = Power.allValues.count
+        let powerIdx = GKRandomSource.sharedRandom().nextIntWithUpperBound(powerCount)
         power = Power(rawValue: powerIdx)!
         
         return power
@@ -56,6 +57,9 @@ class BlockSpawner {
         case .Repair: color = SKColor.greenColor()
         case .Laser: color = SKColor.purpleColor()
         case .Shield: color = SKColor.yellowColor()
+        case .SpeedUp: color = SKColor.cyanColor()
+        case .SlowDown: color = SKColor.brownColor()
+        case .Mines: color = SKColor.blackColor()
         default: color = SKColor.redColor()
         }
         

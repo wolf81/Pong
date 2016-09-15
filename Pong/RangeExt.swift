@@ -1,5 +1,5 @@
 //
-//  Range+Utility.swift
+//  RangeExt.swift
 //  Pong
 //
 //  Created by Wolfgang Schreurs on 08/09/16.

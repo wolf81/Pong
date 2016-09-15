@@ -1,5 +1,5 @@
 //
-//  Array+Utility.swift
+//  ArrayExt.swift
 //  Pong
 //
 //  Created by Wolfgang Schreurs on 10/09/16.

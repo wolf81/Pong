@@ -12,7 +12,7 @@ import GLKit
 class BallSpawner {
     weak var game: Game?
 
-    private(set) var origin = CGPoint(x: 100, y: 100)
+    private(set) var origin = CGPoint.zero
     private(set) var speed: Float = 650
     private(set) var randomAngleGenerator: GKRandomDistribution?
 

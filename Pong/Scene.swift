@@ -1,5 +1,5 @@
 //
-//  BaseScene.swift
+//  Scene.swift
 //  Pong
 //
 //  Created by Wolfgang Schreurs on 30/08/16.
@@ -8,7 +8,7 @@
 
 import SpriteKit
 
-class BaseScene : SKScene {
+class Scene : SKScene {
 
     override init(size: CGSize) {
         super.init(size: size)

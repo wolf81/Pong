@@ -1,5 +1,5 @@
 //
-//  SKShapeNode+Utility.swift
+//  SKShapeNodeExt.swift
 //  Pong
 //
 //  Created by Wolfgang Schreurs on 02/09/16.
